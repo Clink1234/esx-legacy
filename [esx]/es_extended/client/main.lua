@@ -1,8 +1,8 @@
 local pickups = {}
 
-CreateThread(function()
+--[[Citizen.CreateThread(function()
 	while not Config.Multichar do
-		Wait(0)
+		Citizen.Wait(0)
 		if NetworkIsPlayerActive(PlayerId()) then
 			exports.spawnmanager:setAutoSpawn(false)
 			DoScreenFadeOut(0)
@@ -11,7 +11,7 @@ CreateThread(function()
 			break
 		end
 	end
-end)
+end)--]]
 
 RegisterNetEvent('esx:playerLoaded')
 AddEventHandler('esx:playerLoaded', function(xPlayer, isNew, skin)

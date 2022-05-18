@@ -14,7 +14,7 @@ end
 
 loadPlayer = loadPlayer..' FROM `users` WHERE identifier = ?'
 
-if Config.Multichar then
+--[[if Config.Multichar then
 	AddEventHandler('esx:onPlayerJoined', function(src, char, data)
 		while not next(ESX.Jobs) do Wait(50) end
 
@@ -49,7 +49,54 @@ function onPlayerJoined(playerId)
 				loadESXPlayer(identifier, playerId, false)
 			else
 				createESXPlayer(identifier, playerId)
-			end
+			end)
+		end
+	else
+		DropPlayer(playerId, 'there was an error loading your character!\nError code: identifier-missing-ingame\n\nThe cause of this error is not known, your identifier could not be found. Please come back later or report this problem to the server administration team.')
+	end
+end--]]
+
+RegisterNetEvent('esx:onPlayerJoined')
+AddEventHandler('esx:onPlayerJoined', function(slot)
+	if not ESX.Players[source] then
+		onPlayerJoined(source, slot)
+	end
+end)
+
+function onPlayerJoined(playerId, slot)
+	local identifier
+
+	for k,v in ipairs(GetPlayerIdentifiers(playerId)) do
+		if string.match(v, 'license:') then
+			identifier = slot..':'..v:sub(9)
+			break
+		end
+	end
+  
+	if identifier then
+		if ESX.GetPlayerFromIdentifier(identifier) then
+			DropPlayer(playerId, ('there was an error loading your character!\nError code: identifier-active-ingame\n\nThis error is caused by a player on this server who has the same identifier as you have. Make sure you are not playing on the same Rockstar account.\n\nYour Rockstar identifier: %s'):format(identifier))
+		else
+			MySQL.Async.fetchScalar('SELECT 1 FROM users WHERE identifier = @identifier', {
+				['@identifier'] = identifier
+			}, function(result)
+				if result then
+					loadESXPlayer(identifier, playerId)
+				else
+					local accounts = {}
+
+					for account,money in pairs(Config.StartingAccountMoney) do
+						accounts[account] = money
+					end
+
+					MySQL.Async.execute('INSERT INTO users (accounts, identifier) VALUES (@accounts, @identifier)', {
+						['@accounts'] = json.encode(accounts),
+						['@identifier'] = identifier
+					}, function(rowsChanged)
+						--loadESXPlayer(identifier, playerId, true)
+					end)
+				end
+			end)
 		end
 	else
 		DropPlayer(playerId, 'there was an error loading your character!\nError code: identifier-missing-ingame\n\nThe cause of this error is not known, your identifier could not be found. Please come back later or report this problem to the server administration team.')
