@@ -65,7 +65,7 @@ function OpenMenu(submitCb, cancelCb, restrict)
 
         ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'skin', {
             title = _U('skin_menu'),
-            align = 'top-left',
+            align = 'bottom-left',
             elements = elements
         }, function(data, menu)
             TriggerEvent('skinchanger:getSkin', function(skin) lastSkin = skin end)
@@ -141,11 +141,12 @@ function DeleteSkinCam()
     cam = nil
 end
 
-Citizen.CreateThread(function()
+CreateThread(function()
     while true do
-        Citizen.Wait(0)
+        local sleep = 1500
 
         if isCameraActive then
+            sleep = 0
             DisableControlAction(2, 30, true)
             DisableControlAction(2, 31, true)
             DisableControlAction(2, 32, true)
@@ -191,22 +192,22 @@ Citizen.CreateThread(function()
             PointCamAtCoord(cam, posToLook.x, posToLook.y, coords.z + camOffset)
 
             ESX.ShowHelpNotification(_U('use_rotate_view'))
-        else
-            Citizen.Wait(500)
         end
+        Wait(sleep)
     end
 end)
 
-Citizen.CreateThread(function()
+CreateThread(function()
     local angle = 90
 
     while true do
-        Citizen.Wait(0)
+        local sleep = 1500
 
         if isCameraActive then
-            if IsControlPressed(0, 108) then
+            sleep = 0
+            if IsControlPressed(0, 209) then
                 angle = angle - 1
-            elseif IsControlPressed(0, 109) then
+            elseif IsControlPressed(0, 19) then
                 angle = angle + 1
             end
 
@@ -217,9 +218,8 @@ Citizen.CreateThread(function()
             end
 
             heading = angle + 0.0
-        else
-            Citizen.Wait(500)
         end
+    Wait(sleep)
     end
 end)
 
@@ -280,7 +280,7 @@ AddEventHandler('esx_skin:playerRegistered', function()
                     skinLoaded = false
                 else
                     TriggerEvent('skinchanger:loadSkin', skin)
-                    Citizen.Wait(100)
+                    Wait(100)
                     skinLoaded = true
                 end
             end)

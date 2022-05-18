@@ -19,7 +19,7 @@ end, true, {help = _U('command_setjob'), validate = true, arguments = {
 }})
 
 ESX.RegisterCommand('car', 'admin', function(xPlayer, args, showError)
-	if not args.car then args.car = "baller2" end
+	if not args.car then args.car = "Prototipo" end
 	xPlayer.triggerEvent('esx:spawnVehicle', args.car)
 end, false, {help = _U('command_car'), validate = false, arguments = {
 	{name = 'car', help = _U('command_car_car'), type = 'any'}
@@ -120,28 +120,31 @@ ESX.RegisterCommand({'clearall', 'clsall'}, 'admin', function(xPlayer, args, sho
 	TriggerClientEvent('chat:clear', -1)
 end, false, {help = _U('command_clearall')})
 
---[[ESX.RegisterCommand('clearinventory', 'admin', function(xPlayer, args, showError)
-	for k,v in ipairs(args.playerId.inventory) do
-		if v.count > 0 then
-			args.playerId.setInventoryItem(v.name, 0)
+--[[
+if not Config.OxInventory then
+	ESX.RegisterCommand('clearinventory', 'admin', function(xPlayer, args, showError)
+		for k,v in ipairs(args.playerId.inventory) do
+			if v.count > 0 then
+				args.playerId.setInventoryItem(v.name, 0)
+			end
 		end
-	end
-end, true, {help = _U('command_clearinventory'), validate = true, arguments = {
-	{name = 'playerId', help = _U('commandgeneric_playerid'), type = 'player'}
-}})--]]
+	end, true, {help = _U('command_clearinventory'), validate = true, arguments = {
+		{name = 'playerId', help = _U('commandgeneric_playerid'), type = 'player'}
+	}})
+	ESX.RegisterCommand('clearloadout', 'admin', function(xPlayer, args, showError)
+		for i=#args.playerId.loadout, 1, -1 do
+			args.playerId.removeWeapon(args.playerId.loadout[i].name)
+		end
+	end, true, {help = _U('command_clearloadout'), validate = true, arguments = {
+		{name = 'playerId', help = _U('commandgeneric_playerid'), type = 'player'}
+	}})
+end	
+--]]
 ESX.RegisterCommand('clearinventory', 'admin', function(xPlayer, args, showError)
   exports["mf-inventory"]:clearInventory(args.playerId.identifier)
 end, true, {help = _U('command_clearinventory'), validate = true, arguments = {
   {name = 'playerId', help = _U('commandgeneric_playerid'), type = 'player'}
 }})
-
---[[ESX.RegisterCommand('clearloadout', 'admin', function(xPlayer, args, showError)
-	for i=#args.playerId.loadout, 1, -1 do
-		args.playerId.removeWeapon(args.playerId.loadout[i].name)
-	end
-end, true, {help = _U('command_clearloadout'), validate = true, arguments = {
-	{name = 'playerId', help = _U('commandgeneric_playerid'), type = 'player'}
-}})--]]
 ESX.RegisterCommand('clearloadout', 'admin', function(xPlayer, args, showError)
   for k,v in ipairs(args.playerId.loadout) do
     args.playerId.removeWeapon(v.name)
@@ -161,32 +164,38 @@ end, true, {help = _U('command_setgroup'), validate = true, arguments = {
 }})
 
 ESX.RegisterCommand('save', 'admin', function(xPlayer, args, showError)
-	ESX.SavePlayer(args.playerId)
+	Core.SavePlayer(args.playerId)
+	print("[^2Info^0] Saved Player!")
 end, true, {help = _U('command_save'), validate = true, arguments = {
 	{name = 'playerId', help = _U('commandgeneric_playerid'), type = 'player'}
 }})
 
 ESX.RegisterCommand('saveall', 'admin', function(xPlayer, args, showError)
-	ESX.SavePlayers()
+	Core.SavePlayers()
 end, true, {help = _U('command_saveall')})
 
 ESX.RegisterCommand('group', {"user", "admin"}, function(xPlayer, args, showError)
-	print(xPlayer.getName()..", You are currently: ^5".. xPlayer.getGroup())
+	print(xPlayer.getName()..", You are currently: ^5".. xPlayer.getGroup() .. "^0")
 end, true)
 
 ESX.RegisterCommand('job', {"user", "admin"}, function(xPlayer, args, showError)
-print(xPlayer.getName()..", You are currently: ^5".. xPlayer.getJob().name.. "^0 - ^5".. xPlayer.getJob().grade_label)
+print(xPlayer.getName()..", You are currently: ^5".. xPlayer.getJob().name.. "^0 - ^5".. xPlayer.getJob().grade_label .. "^0")
 end, true)
 
 ESX.RegisterCommand('info', {"user", "admin"}, function(xPlayer, args, showError)
 	local job = xPlayer.getJob().name
 	local jobgrade = xPlayer.getJob().grade_name
-	print("^2ID : ^5"..xPlayer.source.." ^0| ^2Name:^5"..xPlayer.getName().." ^0 | ^2Group:^5"..xPlayer.getGroup().."^0 | ^2Job:^5".. job.."")
+	print("^2ID : ^5"..xPlayer.source.." ^0| ^2Name:^5"..xPlayer.getName().." ^0 | ^2Group:^5"..xPlayer.getGroup().."^0 | ^2Job:^5".. job.."^0")
 	end, true)
 
 ESX.RegisterCommand('coords', "admin", function(xPlayer, args, showError)
-	print("".. xPlayer.getName().. ": ^5".. xPlayer.getCoords(true))
+	local coords = GetEntityCoords(GetPlayerPed(xPlayer.source), false)
+  local heading = GetEntityHeading(GetPlayerPed(xPlayer.source))
+	print("Coords - Vector3: ^5".. vector3(coords.x,coords.y,coords.z).. "^0")
+	print("Coords - Vector4: ^5".. vector4(coords.x, coords.y, coords.z, heading) .. "^0")
 end, true)
+
+
 
 ESX.RegisterCommand('tpm', "admin", function(xPlayer, args, showError)
 	xPlayer.triggerEvent("esx:tpm")
@@ -207,7 +216,7 @@ end, true, {help = _U('bring'), validate = true, arguments = {
 }})
 
 ESX.RegisterCommand('kill', "admin", function(xPlayer, args, showError)
-	args.playerId.triggerEvent('esx:killPlayer')
+	args.playerId.triggerEvent("esx:killPlayer")
 end, true, {help = _U('kill'), validate = true, arguments = {
 {name = 'playerId', help = _U('commandgeneric_playerid'), type = 'player'}
 }})
@@ -223,12 +232,6 @@ ESX.RegisterCommand('unfreeze', "admin", function(xPlayer, args, showError)
 end, true, {help = _U('kill'), validate = true, arguments = {
 {name = 'playerId', help = _U('commandgeneric_playerid'), type = 'player'}
 }})
-
-ESX.RegisterCommand('reviveall', "admin", function(xPlayer, args, showError)
-	for _, playerId in ipairs(GetPlayers()) do
-		TriggerClientEvent('esx_ambulancejob:revive', playerId)
-	end
-end, false)
 
 ESX.RegisterCommand("noclip", 'admin', function(xPlayer, args, showError)
 	xPlayer.triggerEvent('esx:noclip')

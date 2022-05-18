@@ -26,7 +26,7 @@ RegisterNUICallback('withdraw', function(data, cb)
 end)
 
 -- Create blips
-Citizen.CreateThread(function()
+CreateThread(function()
 	if not Config.EnableBlips then return end
 
 	for _, ATMLocation in pairs(Config.ATMLocations) do
@@ -37,21 +37,22 @@ Citizen.CreateThread(function()
 		SetBlipColour(ATMLocation.blip, 2)
 		SetBlipAsShortRange(ATMLocation.blip, true)
 		BeginTextCommandSetBlipName("STRING")
-		AddTextComponentString(_U('atm_blip'))
+		AddTextComponentSubstringPlayerName(_U('atm_blip'))
 		EndTextCommandSetBlipName(ATMLocation.blip)
 	end
 end)
 
 -- Activate menu when player is inside marker
-Citizen.CreateThread(function()
+CreateThread(function()
 	while true do
-		Citizen.Wait(10)
 		local coords = GetEntityCoords(PlayerPedId())
-		local canSleep = true
+		local Sleep = 1500
 		isInATMMarker = false
 
 		for k,v in pairs(Config.ATMLocations) do
-			if GetDistanceBetweenCoords(coords, v.x, v.y, v.z, true) < 1.0 then
+			local Pos = vector3(v.x,v.y,v.z)
+			if #(coords - Pos) < 2.0 then
+				Sleep = 0
 				isInATMMarker, canSleep = true, false
 				break
 			end
@@ -72,20 +73,17 @@ Citizen.CreateThread(function()
 				hideAll = true
 			})
 		end
-
-		if canSleep then
-			Citizen.Wait(500)
-		end
+	Wait(Sleep)
 	end
 end)
 
 -- Menu interactions
-Citizen.CreateThread(function()
+CreateThread(function()
 	while true do
-		Citizen.Wait(0)
+		local Sleep = 1500
 
 		if isInATMMarker and not menuIsShowed then
-
+			Sleep = 0
 			ESX.ShowHelpNotification(_U('press_e_atm'))
 
 			if IsControlJustReleased(0, 38) and IsPedOnFoot(PlayerPedId()) then
@@ -102,10 +100,8 @@ Citizen.CreateThread(function()
 
 				SetNuiFocus(true, true)
 			end
-
-		else
-			Citizen.Wait(500)
 		end
+	Wait(Sleep)
 	end
 end)
 

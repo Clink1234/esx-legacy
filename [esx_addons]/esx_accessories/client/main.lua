@@ -1,4 +1,4 @@
-local HasAlreadyEnteredMarker, isDead = false, false
+local HasAlreadyEnteredMarker = false
 local LastZone, CurrentAction, CurrentActionMsg
 local CurrentActionData	= {}
 
@@ -74,9 +74,19 @@ function OpenShopMenu(accessory)
 							TriggerServerEvent('esx_accessories:save', skin, accessory)
 						end)
 					else
+						local player = PlayerPedId()
 						TriggerEvent('esx_skin:getLastSkin', function(skin)
 							TriggerEvent('skinchanger:loadSkin', skin)
 						end)
+						if accessory == "Ears" then
+							ClearPedProp(player, 2)
+						elseif accessory == "Mask" then
+							SetPedComponentVariation(player, 1, 0 ,0, 2)
+						elseif accessory == "Helmet" then
+							ClearPedProp(player, 0)
+						elseif accessory == "Glasses" then
+							SetPedPropIndex(player, 1, -1, 0, 0)
+						end
 						ESX.ShowNotification(_U('not_enough_money'))
 					end
 				end)
@@ -114,9 +124,6 @@ function OpenShopMenu(accessory)
 	end, restrict)
 end
 
-AddEventHandler('esx:onPlayerSpawn', function() isDead = false end)
-AddEventHandler('esx:onPlayerDeath', function() isDead = true end)
-
 AddEventHandler('esx_accessories:hasEnteredMarker', function(zone)
 	CurrentAction     = 'shop_menu'
 	CurrentActionMsg  = _U('press_access')
@@ -129,9 +136,9 @@ AddEventHandler('esx_accessories:hasExitedMarker', function(zone)
 end)
 
 -- Create Blips --
-Citizen.CreateThread(function()
+CreateThread(function()
 	for k,v in pairs(Config.ShopsBlips) do
-		if v.Pos ~= nil then
+		if v.Pos then
 			for i=1, #v.Pos, 1 do
 				local blip = AddBlipForCoord(v.Pos[i])
 
@@ -142,7 +149,7 @@ Citizen.CreateThread(function()
 				SetBlipAsShortRange(blip, true)
 
 				BeginTextCommandSetBlipName("STRING")
-				AddTextComponentString(_U('shop', _U(string.lower(k))))
+				AddTextComponentSubstringPlayerName(_U('shop', _U(string.lower(k))))
 				EndTextCommandSetBlipName(blip)
 			end
 		end
@@ -151,30 +158,30 @@ end)
 
 local nearMarker = false
 -- Display markers
-Citizen.CreateThread(function()
+CreateThread(function()
 	while true do
-		local sleep = 500
-		local coords = GetEntityCoords(ESX.PlayerData.ped)
+		local sleep = 1500
+		local coords = GetEntityCoords(PlayerPedId())
 		for k,v in pairs(Config.Zones) do
 			for i = 1, #v.Pos, 1 do
 				if(Config.Type ~= -1 and #(coords - v.Pos[i]) < Config.DrawDistance) then
-					DrawMarker(Config.Type, v.Pos[i], 0.0, 0.0, 0.0, 0, 0.0, 0.0, Config.Size.x, Config.Size.y, Config.Size.z, Config.Color.r, Config.Color.g, Config.Color.b, 100, false, true, 2, false, false, false, false)
+					DrawMarker(Config.Type, v.Pos[i], 0.0, 0.0, 0.0, 0, 0.0, 0.0, Config.Size.x, Config.Size.y, Config.Size.z, Config.Color.r, Config.Color.g, Config.Color.b, 255, true, false, 2, true, false, false, false)
 					sleep = 0
 					break
 				end
 			end
 		end
 		if sleep == 0 then nearMarker = true else nearMarker = false end
-		Citizen.Wait(sleep)
+		Wait(sleep)
 	end
 end)
 
-Citizen.CreateThread(function()
+CreateThread(function()
 	while true do
-		local sleep = 500
+		local sleep = 1500
 		if nearMarker then
-			sleep = 200
-			local coords = GetEntityCoords(ESX.PlayerData.ped)
+			sleep = 0
+			local coords = GetEntityCoords(PlayerPedId())
 			local isInMarker = false
 			local currentZone = nil
 			for k,v in pairs(Config.Zones) do
@@ -198,30 +205,34 @@ Citizen.CreateThread(function()
 				TriggerEvent('esx_accessories:hasExitedMarker', LastZone)
 			end
 		end
-		Citizen.Wait(sleep)
+		Wait(sleep)
 	end
 end)
 
 -- Key controls
-Citizen.CreateThread(function()
+CreateThread(function()
 	while true do
-		Citizen.Wait(0)
+		local Sleep = 1500
 		
 		if CurrentAction then
+			Sleep = 0
 			ESX.ShowHelpNotification(CurrentActionMsg)
 
 			if IsControlJustReleased(0, 38) and CurrentActionData.accessory then
 				OpenShopMenu(CurrentActionData.accessory)
 				CurrentAction = nil
 			end
-		elseif CurrentAction and not Config.EnableControls then
-			Citizen.Wait(500)
 		end
-
-		if Config.EnableControls then
-			if IsControlJustReleased(0, 311) and IsInputDisabled(0) and not isDead then
-				OpenAccessoryMenu()
-			end
-		end
+		Wait(Sleep)
 	end
 end)
+
+if Config.EnableControls then
+	RegisterCommand("accessory", function(src)
+		if not ESX.GetPlayerData().dead then 
+			OpenAccessoryMenu()
+		end
+	end)
+
+	RegisterKeyMapping("accessory", "Open Accessory Menu", "keyboard", "k")
+end
