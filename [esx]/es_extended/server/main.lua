@@ -96,7 +96,7 @@ function onPlayerJoined(playerId, slot)
 						--loadESXPlayer(identifier, playerId, true)
 					end)
 				end
-			end
+			end)
 		end
 	else
 		DropPlayer(playerId, 'there was an error loading your character!\nError code: identifier-missing-ingame\n\nThe cause of this error is not known, your identifier could not be found. Please come back later or report this problem to the server administration team.')

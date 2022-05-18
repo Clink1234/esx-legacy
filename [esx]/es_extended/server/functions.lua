@@ -165,8 +165,6 @@ end
 
 function Core.SavePlayer(xPlayer, cb)
 	MySQL.prepare('UPDATE `users` SET `accounts` = ?, `job` = ?, `job_grade` = ?, `group` = ?, `position` = ?, `inventory` = ?, `loadout` = ? WHERE `identifier` = ?', {
-function Core.SavePlayer(xPlayer, cb)
-	MySQL.prepare('UPDATE `users` SET `accounts` = ?, `job` = ?, `job_grade` = ?, `group` = ?, `position` = ?, `inventory` = ?, `loadout` = ? WHERE `identifier` = ?', {
 		json.encode(xPlayer.getAccounts(true)),
 		xPlayer.job.name,
 		xPlayer.job.grade,
@@ -177,21 +175,6 @@ function Core.SavePlayer(xPlayer, cb)
 		xPlayer.identifier
 	}, function(affectedRows)
 		exports["mf-inventory"]:saveInventory(xPlayer.getIdentifier())
-		if affectedRows == 1 then
-			print(('[^2INFO^7] Saved player ^5"%s^7"'):format(xPlayer.name))
-		end
-		if cb then cb() end
-	end)
-end
-		json.encode(xPlayer.getAccounts(true)),
-		xPlayer.job.name,
-		xPlayer.job.grade,
-		xPlayer.group,
-		json.encode(xPlayer.getCoords()),
-		json.encode(xPlayer.getInventory(true)),
-		json.encode(xPlayer.getLoadout(true)),
-		xPlayer.identifier
-	}, function(affectedRows)
 		if affectedRows == 1 then
 			print(('[^2INFO^7] Saved player ^5"%s^7"'):format(xPlayer.name))
 		end
