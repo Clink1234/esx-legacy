@@ -43,6 +43,8 @@ local Components = {
 	{label = _U('bproof_2'),				name = 'bproof_2',			value = 0,		min = 0,	zoomOffset = 0.75,		camOffset = 0.15,	textureof	= 'bproof_1'},
 	{label = _U('chain_1'),					name = 'chain_1',			value = 0,		min = 0,	zoomOffset = 0.6,		camOffset = 0.65,	componentId	= 7},
 	{label = _U('chain_2'),					name = 'chain_2',			value = 0,		min = 0,	zoomOffset = 0.6,		camOffset = 0.65,	textureof	= 'chain_1'},
+  {label = _U('neckarm_1'),					name = 'neckarm_1',			value = 0,		min = 0,	zoomOffset = 0.6,		camOffset = 0.65,	componentId	= 7},
+	{label = _U('neckarm_2'),					name = 'neckarm_2',			value = 0,		min = 0,	zoomOffset = 0.6,		camOffset = 0.65,	textureof	= 'neckarm_1'},
 	{label = _U('helmet_1'),				name = 'helmet_1',			value = -1,		min = -1,	zoomOffset = 0.6,		camOffset = 0.65,	componentId	= 0 },
 	{label = _U('helmet_2'),				name = 'helmet_2',			value = 0,		min = 0,	zoomOffset = 0.6,		camOffset = 0.65,	textureof	= 'helmet_1'},
 	{label = _U('glasses_1'),				name = 'glasses_1',			value = 0,		min = 0,	zoomOffset = 0.6,		camOffset = 0.65,	componentId	= 1},
@@ -427,9 +429,9 @@ function ApplySkin(skin, clothes)
 	end
 end
 
-AddEventHandler('skinchanger:loadDefaultModel', function(loadMale, cb)
+--[[AddEventHandler('skinchanger:loadDefaultModel', function(loadMale, cb)
 	LoadDefaultModel(loadMale, cb)
-end)
+end)--]]
 
 AddEventHandler('skinchanger:getData', function(cb)
 	local components = json.decode(json.encode(Components))
@@ -447,7 +449,12 @@ AddEventHandler('skinchanger:getData', function(cb)
 	cb(components, GetMaxVals())
 end)
 
-AddEventHandler('skinchanger:change', function(key, val)
+--[[AddEventHandler('skinchanger:customizationUpdate', function(data)
+	Character = json.decode(data)
+	ApplySkin(Character)
+end)--]]
+
+--[[AddEventHandler('skinchanger:change', function(key, val)
 	Character[key] = val
 
 	if key == 'sex' then
@@ -455,13 +462,13 @@ AddEventHandler('skinchanger:change', function(key, val)
 	else
 		ApplySkin(Character)
 	end
-end)
+end)--]]
 
-AddEventHandler('skinchanger:getSkin', function(cb)
+--[[AddEventHandler('skinchanger:getSkin', function(cb)
 	cb(Character)
-end)
+end)--]]
 
-AddEventHandler('skinchanger:modelLoaded', function()
+--[[AddEventHandler('skinchanger:modelLoaded', function()
 	ClearPedProp(PlayerPedId(), 0)
 
 	if LoadSkin ~= nil then
@@ -473,9 +480,9 @@ AddEventHandler('skinchanger:modelLoaded', function()
 		ApplySkin(LoadClothes.playerSkin, LoadClothes.clothesSkin)
 		LoadClothes = nil
 	end
-end)
+end)--]]
 
-RegisterNetEvent('skinchanger:loadSkin')
+--[[RegisterNetEvent('skinchanger:loadSkin')
 AddEventHandler('skinchanger:loadSkin', function(skin, cb)
 	if skin['sex'] ~= LastSex then
 		LoadSkin = skin
@@ -494,9 +501,9 @@ AddEventHandler('skinchanger:loadSkin', function(skin, cb)
 	end
 
 	LastSex = skin['sex']
-end)
+end)--]]
 
-RegisterNetEvent('skinchanger:loadClothes')
+--[[RegisterNetEvent('skinchanger:loadClothes')
 AddEventHandler('skinchanger:loadClothes', function(playerSkin, clothesSkin)
 	if playerSkin['sex'] ~= LastSex then
 		LoadClothes = {
@@ -514,4 +521,4 @@ AddEventHandler('skinchanger:loadClothes', function(playerSkin, clothesSkin)
 	end
 
 	LastSex = playerSkin['sex']
-end)
+end)--]]

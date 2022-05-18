@@ -24,7 +24,7 @@ end)
 
 AddEventHandler('onResourceStop', function(resource)
 	if resource == GetCurrentResourceName() then
-		TriggerEvent('chat:removeSuggestion', '/twt')
+		--TriggerEvent('chat:removeSuggestion', '/twt')
 		TriggerEvent('chat:removeSuggestion', '/me')
 		TriggerEvent('chat:removeSuggestion', '/do')
 	end

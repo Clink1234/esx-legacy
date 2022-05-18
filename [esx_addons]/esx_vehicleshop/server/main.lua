@@ -14,6 +14,7 @@ Citizen.CreateThread(function()
 end)
 
 function RemoveOwnedVehicle(plate)
+  exports['t1ger_keys']:UpdateKeysToDatabase(plate, false)
 	MySQL.Async.execute('DELETE FROM owned_vehicles WHERE plate = @plate', {
 		['@plate'] = plate
 	})
@@ -26,7 +27,7 @@ AddEventHandler('onResourceStart', function(resourceName)
 end)
 
 function SQLVehiclesAndCategories()
-	MySQL.Async.fetchAll('SELECT * FROM `vehicle_categories`', {}, function(_categories)
+	MySQL.Async.fetchAll('SELECT * FROM `vehicle_categories` ORDER BY sort_order', {}, function(_categories)
 		categories = _categories
 
 		MySQL.Async.fetchAll('SELECT * FROM `vehicles`', {}, function(_vehicles)
@@ -37,6 +38,19 @@ function SQLVehiclesAndCategories()
 
 	end)
 end
+
+-- LUCKYWHEEL
+RegisterServerEvent('esx_vehicleshop:setVehicleOwned')
+AddEventHandler('esx_vehicleshop:setVehicleOwned', function (vehicleProps)
+	local _source = source
+	local xPlayer = ESX.GetPlayerFromId(_source)
+		MySQL.Async.execute('INSERT INTO owned_vehicles (owner, plate, vehicle) VALUES (@Owner, @plate, @vehicle)',{
+		['@Owner'] = xPlayer.identifier,
+		['@plate'] = vehicleProps.plate,
+		['@vehicle'] = json.encode(vehicleProps)
+		}, function (rowsChanged)
+	end)
+end)
 
 function GetVehiclesAndCategories(categories, vehicles)
 	for k,v in ipairs(vehicles) do
@@ -63,6 +77,24 @@ function getVehicleLabelFromModel(model)
 	return
 end
 
+RegisterNetEvent('esx_vehicleshop:getRoles')
+AddEventHandler('esx_vehicleshop:getRoles', function()
+  local src = source
+  
+	for k, v in ipairs(GetPlayerIdentifiers(src)) do
+      if string.sub(v, 1, string.len("discord:")) == "discord:" then
+          identifierDiscord = v
+      end
+  end
+  if identifierDiscord then
+    exports['discordroles']:getUserRoles(src, function(usersRoles)
+        TriggerClientEvent("esx_vehicleshop:getRoles:Return", src, usersRoles)
+    end)
+  else
+    TriggerClientEvent("esx_vehicleshop:getRoles:Return", src, nil)
+  end
+end)
+
 RegisterNetEvent('esx_vehicleshop:setVehicleOwnedPlayerId')
 AddEventHandler('esx_vehicleshop:setVehicleOwnedPlayerId', function(playerId, vehicleProps, model, label)
 	local xPlayer, xTarget = ESX.GetPlayerFromId(source), ESX.GetPlayerFromId(playerId)
@@ -83,6 +115,7 @@ AddEventHandler('esx_vehicleshop:setVehicleOwnedPlayerId', function(playerId, ve
 							['@plate']   = vehicleProps.plate,
 							['@vehicle'] = json.encode(vehicleProps)
 						}, function(rowsChanged)
+              exports['t1ger_keys']:UpdateKeysToDatabase(plate, true)
 							xPlayer.showNotification(_U('vehicle_set_owned', vehicleProps.plate, xTarget.getName()))
 							xTarget.showNotification(_U('vehicle_belongs', vehicleProps.plate))
 						end)
@@ -119,7 +152,7 @@ AddEventHandler('esx_vehicleshop:rentVehicle', function(vehicle, plate, rentPric
 		}, function(result)
 			if result[1] then
 				local price = result[1].price
-
+        
 				MySQL.Async.execute('DELETE FROM cardealer_vehicles WHERE id = @id', {
 					['@id'] = result[1].id
 				}, function(rowsChanged)
@@ -195,10 +228,12 @@ end)
 ESX.RegisterServerCallback('esx_vehicleshop:buyVehicle', function(source, cb, model, plate)
 	local xPlayer = ESX.GetPlayerFromId(source)
 	local modelPrice
+  local category
 
 	for k,v in ipairs(vehicles) do
 		if model == v.model then
 			modelPrice = v.price
+      category = v.category
 			break
 		end
 	end
@@ -212,6 +247,8 @@ ESX.RegisterServerCallback('esx_vehicleshop:buyVehicle', function(source, cb, mo
 			['@vehicle'] = json.encode({model = GetHashKey(model), plate = plate})
 		}, function(rowsChanged)
 			xPlayer.showNotification(_U('vehicle_belongs', plate))
+      exports["mf-inventory"]:registerVehicleInventory(plate,category,GetHashKey(model))
+      exports['t1ger_keys']:UpdateKeysToDatabase(plate, true)
 			cb(true)
 		end)
 	else
@@ -398,6 +435,17 @@ ESX.RegisterServerCallback('esx_vehicleshop:isPlateTaken', function(source, cb, 
 	}, function(result)
 		cb(result[1] ~= nil)
 	end)
+end)
+
+ESX.RegisterServerCallback('esx_vehicleshop:deleteJobVehicle', function(source, cb, plate)
+	local xPlayer = ESX.GetPlayerFromId(source)
+  exports['t1ger_keys']:UpdateKeysToDatabase(plate, false)
+	MySQL.Async.execute('DELETE FROM owned_vehicles WHERE plate = @plate AND owner = @owner', {
+		['@owner'] = xPlayer.identifier,
+    ['@plate'] = plate
+	}, function(rowsChanged)
+    cb(rowsChanged)
+  end)
 end)
 
 ESX.RegisterServerCallback('esx_vehicleshop:retrieveJobVehicles', function(source, cb, type)

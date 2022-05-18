@@ -247,6 +247,25 @@ AddEventHandler('esx_skin:resetFirstSpawn', function()
     ESX.PlayerLoaded = false
 end)
 
+--[[AddEventHandler('esx_skin:playerRegistered', function()
+    Citizen.CreateThread(function()
+        while not ESX.PlayerLoaded do
+            Citizen.Wait(100)
+        end
+        ESX.TriggerServerCallback('esx_skin:getPlayerSkin', function(skin, jobSkin)
+          if skin == nil then
+              TriggerEvent('skinchanger:loadSkin', {sex = 0}, OpenSaveableMenu)
+              --TriggerEvent('ECLIPSE:OpenCharacterCreatioMenu')
+              Citizen.Wait(100)
+              skinLoaded = true
+          else
+              TriggerEvent('skinchanger:loadSkin', skin)
+              Citizen.Wait(100)
+              skinLoaded = true
+          end
+      end)
+    end)
+end)--]]
 AddEventHandler('esx_skin:playerRegistered', function()
     Citizen.CreateThread(function()
         while not ESX.PlayerLoaded do
@@ -256,9 +275,9 @@ AddEventHandler('esx_skin:playerRegistered', function()
         if firstSpawn then
             ESX.TriggerServerCallback('esx_skin:getPlayerSkin', function(skin, jobSkin)
                 if skin == nil then
-                    TriggerEvent('skinchanger:loadSkin', {sex = 0}, OpenSaveableMenu)
-                    Citizen.Wait(100)
-                    skinLoaded = true
+                    --TriggerEvent('skinchanger:loadSkin', {sex = 0}, OpenSaveableMenu)
+                    --Citizen.Wait(100)
+                    skinLoaded = false
                 else
                     TriggerEvent('skinchanger:loadSkin', skin)
                     Citizen.Wait(100)

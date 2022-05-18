@@ -121,6 +121,10 @@ function CreateExtendedPlayer(playerId, identifier, group, accounts, inventory, 
 			return self.inventory
 		end
 	end
+  
+  self.setInventory = function(inv)
+    self.inventory = inv
+  end
 
 	self.getJob = function()
 		return self.job
@@ -163,7 +167,7 @@ function CreateExtendedPlayer(playerId, identifier, group, accounts, inventory, 
 		self.name = newName
 	end
 
-	self.setAccountMoney = function(accountName, money)
+	--[[self.setAccountMoney = function(accountName, money)
 		if money >= 0 then
 			local account = self.getAccount(accountName)
 
@@ -175,9 +179,24 @@ function CreateExtendedPlayer(playerId, identifier, group, accounts, inventory, 
 				self.triggerEvent('esx:setAccountMoney', account)
 			end
 		end
-	end
+	end--]]
+  self.setAccountMoney = function(accountName, money)
+    if money >= 0 then
+      local account = self.getAccount(accountName)
 
-	self.addAccountMoney = function(accountName, money)
+      if account then
+        local prevMoney = account.money
+        local newMoney = ESX.Math.Round(money)
+        account.money = newMoney
+
+        self.triggerEvent('esx:setAccountMoney', account)
+
+        exports["mf-inventory"]:setAccountMoney(self.source,self.identifier,accountName,account.money)
+      end
+    end
+  end
+
+	--[[self.addAccountMoney = function(accountName, money)
 		if money > 0 then
 			local account = self.getAccount(accountName)
 
@@ -188,9 +207,25 @@ function CreateExtendedPlayer(playerId, identifier, group, accounts, inventory, 
 				self.triggerEvent('esx:setAccountMoney', account)
 			end
 		end
-	end
+	end--]]
+  self.addAccountMoney = function(accountName, money, ignoreInventory)
+    if money > 0 then
+      local account = self.getAccount(accountName)
 
-	self.removeAccountMoney = function(accountName, money)
+      if account then
+        local newMoney = account.money + ESX.Math.Round(money)
+        account.money = newMoney
+
+        self.triggerEvent('esx:setAccountMoney', account)
+
+        if not ignoreInventory then
+          exports["mf-inventory"]:setAccountMoney(self.source,self.identifier,accountName,account.money)
+        end
+      end
+    end
+  end
+
+	--[[self.removeAccountMoney = function(accountName, money)
 		if money > 0 then
 			local account = self.getAccount(accountName)
 
@@ -201,9 +236,25 @@ function CreateExtendedPlayer(playerId, identifier, group, accounts, inventory, 
 				self.triggerEvent('esx:setAccountMoney', account)
 			end
 		end
-	end
+	end--]]
+  self.removeAccountMoney = function(accountName, money, ignoreInventory)
+    if money > 0 then
+      local account = self.getAccount(accountName)
 
-	self.getInventoryItem = function(name)
+      if account then
+        local newMoney = account.money - ESX.Math.Round(money)
+        account.money = newMoney
+
+        self.triggerEvent('esx:setAccountMoney', account)
+
+        if not ignoreInventory then
+          exports["mf-inventory"]:setAccountMoney(self.source,self.identifier,accountName,account.money)
+        end
+      end
+    end
+  end
+
+	--[[self.getInventoryItem = function(name)
 		for k,v in ipairs(self.inventory) do
 			if v.name == name then
 				return v
@@ -211,11 +262,13 @@ function CreateExtendedPlayer(playerId, identifier, group, accounts, inventory, 
 		end
 
 		return
-	end
+	end--]]
+  self.getInventoryItem = function(name, count, ...)
+    return exports["mf-inventory"]:getInventoryItem(self.identifier, name, count, ...)
+  end
 
-	self.addInventoryItem = function(name, count)
+	--[[self.addInventoryItem = function(name, count)
 		local item = self.getInventoryItem(name)
-
 		if item then
 			count = ESX.Math.Round(count)
 			item.count = item.count + count
@@ -224,9 +277,12 @@ function CreateExtendedPlayer(playerId, identifier, group, accounts, inventory, 
 			TriggerEvent('esx:onAddInventoryItem', self.source, item.name, item.count)
 			self.triggerEvent('esx:addInventoryItem', item.name, item.count)
 		end
-	end
+	end--]]
+  self.addInventoryItem = function(name, count, quality, ...)
+    return exports["mf-inventory"]:addInventoryItem(self.identifier, name, count, self.source, quality, ...)
+  end
 
-	self.removeInventoryItem = function(name, count)
+	--[[self.removeInventoryItem = function(name, count)
 		local item = self.getInventoryItem(name)
 
 		if item then
@@ -241,7 +297,10 @@ function CreateExtendedPlayer(playerId, identifier, group, accounts, inventory, 
 				self.triggerEvent('esx:removeInventoryItem', item.name, item.count)
 			end
 		end
-	end
+	end--]]
+  self.removeInventoryItem = function(name, count, ...)
+    return exports["mf-inventory"]:removeInventoryItem(self.identifier, name, count, self.source, ...)
+  end
 
 	self.setInventoryItem = function(name, count)
 		local item = self.getInventoryItem(name)
@@ -326,7 +385,7 @@ function CreateExtendedPlayer(playerId, identifier, group, accounts, inventory, 
 		end
 	end
 
-	self.addWeapon = function(weaponName, ammo)
+	--[[self.addWeapon = function(weaponName, ammo)
 		if not self.hasWeapon(weaponName) then
 			local weaponLabel = ESX.GetWeaponLabel(weaponName)
 
@@ -341,7 +400,27 @@ function CreateExtendedPlayer(playerId, identifier, group, accounts, inventory, 
 			self.triggerEvent('esx:addWeapon', weaponName, ammo)
 			self.triggerEvent('esx:addInventoryItem', weaponLabel, false, true)
 		end
-	end
+	end--]]
+  self.addWeapon = function(weaponName, ammo, ignoreInventory)
+    if not self.hasWeapon(weaponName) then
+      local weaponLabel = ESX.GetWeaponLabel(weaponName)
+
+      table.insert(self.loadout, {
+        name = weaponName,
+        ammo = ammo,
+        label = weaponLabel,
+        components = {},
+        tintIndex = 0
+      })
+
+      self.triggerEvent('esx:addWeapon', weaponName, ammo)
+      self.triggerEvent('esx:addInventoryItem', weaponLabel, false, true)
+
+      if not ignoreInventory then
+        exports["mf-inventory"]:addInventoryItem(self.identifier,weaponName,1,self.source)
+      end
+    end
+  end
 
 	self.addWeaponComponent = function(weaponName, weaponComponent)
 		local loadoutNum, weapon = self.getWeapon(weaponName)
@@ -402,7 +481,7 @@ function CreateExtendedPlayer(playerId, identifier, group, accounts, inventory, 
 		return 0
 	end
 
-	self.removeWeapon = function(weaponName)
+	--[[self.removeWeapon = function(weaponName)
 		local weaponLabel
 
 		for k,v in ipairs(self.loadout) do
@@ -422,7 +501,32 @@ function CreateExtendedPlayer(playerId, identifier, group, accounts, inventory, 
 			self.triggerEvent('esx:removeWeapon', weaponName)
 			self.triggerEvent('esx:removeInventoryItem', weaponLabel, false, true)
 		end
-	end
+	end--]]
+  self.removeWeapon = function(weaponName, ammo, ignoreInventory)
+    local weaponLabel
+
+    for k,v in ipairs(self.loadout) do
+      if v.name == weaponName then
+        weaponLabel = v.label
+
+        for k2,v2 in ipairs(v.components) do
+          self.removeWeaponComponent(weaponName, v2)
+        end
+
+        table.remove(self.loadout, k)
+        break
+      end
+    end
+
+    if weaponLabel then
+      self.triggerEvent('esx:removeWeapon', weaponName, ammo)
+      self.triggerEvent('esx:removeInventoryItem', weaponLabel, false, true)
+
+      if not ignoreInventory then
+        exports["mf-inventory"]:removeInventoryItem(self.identifier,weaponName,1,self.source)
+      end
+    end
+  end
 
 	self.removeWeaponComponent = function(weaponName, weaponComponent)
 		local loadoutNum, weapon = self.getWeapon(weaponName)

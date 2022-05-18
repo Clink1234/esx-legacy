@@ -1,4 +1,4 @@
-RegisterServerEvent('esx_skin:save')
+--[[RegisterServerEvent('esx_skin:save')
 AddEventHandler('esx_skin:save', function(skin)
 	local xPlayer = ESX.GetPlayerFromId(source)
 	local defaultMaxWeight = ESX.GetConfig().MaxWeight
@@ -14,7 +14,7 @@ AddEventHandler('esx_skin:save', function(skin)
 		['@skin'] = json.encode(skin),
 		['@identifier'] = xPlayer.identifier
 	})
-end)
+end)--]]
 
 RegisterServerEvent('esx_skin:responseSaveSkin')
 AddEventHandler('esx_skin:responseSaveSkin', function(skin)
@@ -31,7 +31,7 @@ AddEventHandler('esx_skin:responseSaveSkin', function(skin)
 	end
 end)
 
-ESX.RegisterServerCallback('esx_skin:getPlayerSkin', function(source, cb)
+--[[ESX.RegisterServerCallback('esx_skin:getPlayerSkin', function(source, cb)
 	local xPlayer = ESX.GetPlayerFromId(source)
 
 	MySQL.Async.fetchAll('SELECT skin FROM users WHERE identifier = @identifier', {
@@ -50,10 +50,11 @@ ESX.RegisterServerCallback('esx_skin:getPlayerSkin', function(source, cb)
 
 		cb(skin, jobSkin)
 	end)
-end)
+end)--]]
 
 ESX.RegisterCommand('skin', 'admin', function(xPlayer, args, showError)
 	xPlayer.triggerEvent('esx_skin:openSaveableMenu')
+  --xPlayer.TriggerEvent('ECLIPSE:OpenCharacterCreatioMenu')
 end, false, {help = _U('skin')})
 
 ESX.RegisterCommand('skinsave', 'admin', function(xPlayer, args, showError)

@@ -1,6 +1,6 @@
 local pickups = {}
 
-Citizen.CreateThread(function()
+--[[Citizen.CreateThread(function()
 	while not Config.Multichar do
 		Citizen.Wait(0)
 		if NetworkIsPlayerActive(PlayerId()) then
@@ -9,6 +9,16 @@ Citizen.CreateThread(function()
 			TriggerServerEvent('esx:onPlayerJoined')
 			break
 		end
+	end
+end)--]]
+
+Citizen.CreateThread(function ()
+	while true do
+		Citizen.Wait(1)
+		HideHudComponentThisFrame(19)
+    HideHudComponentThisFrame(20)
+    HideHudComponentThisFrame(22)
+    HudWeaponWheelIgnoreSelection()
 	end
 end)
 
@@ -28,12 +38,12 @@ AddEventHandler('esx:playerLoaded', function(xPlayer, isNew, skin)
 			z = ESX.PlayerData.coords.z + 0.25,
 			heading = ESX.PlayerData.coords.heading,
 			model = `mp_m_freemode_01`,
-			skipFade = false
+			skipFade = true
 		}, function()
-			TriggerServerEvent('esx:onPlayerSpawn')
-			TriggerEvent('esx:onPlayerSpawn')
-			TriggerEvent('playerSpawned') -- compatibility with old scripts
-			TriggerEvent('esx:restoreLoadout')
+			--TriggerServerEvent('esx:onPlayerSpawn')
+			--TriggerEvent('esx:onPlayerSpawn')
+			--TriggerEvent('playerSpawned') -- compatibility with old scripts
+		  --TriggerEvent('esx:restoreLoadout')
 			if isNew then
 				if skin.sex == 0 then
 					TriggerEvent('skinchanger:loadDefaultModel', true)
@@ -412,12 +422,22 @@ function StartServerSyncLoops()
 				local playerCoords = GetEntityCoords(ESX.PlayerData.ped)
 				local distance = #(playerCoords - previousCoords)
 
-				if distance > 1 then
+				--[[if distance > 1 then
 					previousCoords = playerCoords
 					local playerHeading = ESX.Math.Round(GetEntityHeading(ESX.PlayerData.ped), 1)
 					local formattedCoords = {x = ESX.Math.Round(playerCoords.x, 1), y = ESX.Math.Round(playerCoords.y, 1), z = ESX.Math.Round(playerCoords.z, 1), heading = playerHeading}
 					TriggerServerEvent('esx:updateCoords', formattedCoords)
+				end--]]
+        
+        if distance > 10 then
+					if GetInteriorFromEntity(playerPed) ~= 275201 then
+						previousCoords = playerCoords
+						local playerHeading = ESX.Math.Round(GetEntityHeading(playerPed), 1)
+						local formattedCoords = {x = ESX.Math.Round(playerCoords.x, 1), y = ESX.Math.Round(playerCoords.y, 1), z = ESX.Math.Round(playerCoords.z, 1), heading = playerHeading}
+						TriggerServerEvent('esx:updateCoords', formattedCoords)
+					end
 				end
+        
 			end
 			Citizen.Wait(1500)
 		end

@@ -53,11 +53,20 @@ AddEventHandler('esx:playerDropped', function(playerId, reason)
 	end)
 end)
 
-AddEventHandler('esx_status:getStatus', function(playerId, statusName, cb)
+--[[AddEventHandler('esx_status:getStatus', function(playerId, statusName, cb)
 	for i=1, #ESX.Players, 1 do
 		if status[i].name == statusName then
 			cb(status[i])
 			break
+		end
+	end
+end)--]]
+
+AddEventHandler('esx_status:getStatus', function(playerId, statusName, cb)
+	local status = ESX.Players[playerId]
+	for i = 1, #status do
+		if status[i].name == statusName then
+			return cb(status[i])
 		end
 	end
 end)

@@ -56,12 +56,26 @@ end, true, {help = _U('command_giveaccountmoney'), validate = true, arguments = 
 	{name = 'amount', help = _U('command_giveaccountmoney_amount'), type = 'number'}
 }})
 
-ESX.RegisterCommand('giveitem', 'admin', function(xPlayer, args, showError)
+--[[ESX.RegisterCommand('giveitem', 'admin', function(xPlayer, args, showError)
 	args.playerId.addInventoryItem(args.item, args.count)
 end, true, {help = _U('command_giveitem'), validate = true, arguments = {
 	{name = 'playerId', help = _U('commandgeneric_playerid'), type = 'player'},
 	{name = 'item', help = _U('command_giveitem_item'), type = 'item'},
 	{name = 'count', help = _U('command_giveitem_count'), type = 'number'}
+}})--]]
+ESX.RegisterCommand('giveitem', 'admin', function(xPlayer, args, showError)
+  local item = args.item:lower()
+  for i=1,#Config.Weapons do
+    if Config.Weapons[i].name:lower() == item then
+      return
+    end
+  end
+
+  args.playerId.addInventoryItem(args.item, args.count)
+end, true, {help = _U('command_giveitem'), validate = true, arguments = {
+  {name = 'playerId', help = _U('commandgeneric_playerid'), type = 'player'},
+  {name = 'item', help = _U('command_giveitem_item'), type = 'item'},
+  {name = 'count', help = _U('command_giveitem_count'), type = 'number'}
 }})
 
 ESX.RegisterCommand('giveweapon', 'admin', function(xPlayer, args, showError)
@@ -106,7 +120,7 @@ ESX.RegisterCommand({'clearall', 'clsall'}, 'admin', function(xPlayer, args, sho
 	TriggerClientEvent('chat:clear', -1)
 end, false, {help = _U('command_clearall')})
 
-ESX.RegisterCommand('clearinventory', 'admin', function(xPlayer, args, showError)
+--[[ESX.RegisterCommand('clearinventory', 'admin', function(xPlayer, args, showError)
 	for k,v in ipairs(args.playerId.inventory) do
 		if v.count > 0 then
 			args.playerId.setInventoryItem(v.name, 0)
@@ -114,14 +128,27 @@ ESX.RegisterCommand('clearinventory', 'admin', function(xPlayer, args, showError
 	end
 end, true, {help = _U('command_clearinventory'), validate = true, arguments = {
 	{name = 'playerId', help = _U('commandgeneric_playerid'), type = 'player'}
+}})--]]
+ESX.RegisterCommand('clearinventory', 'admin', function(xPlayer, args, showError)
+  exports["mf-inventory"]:clearInventory(args.playerId.identifier)
+end, true, {help = _U('command_clearinventory'), validate = true, arguments = {
+  {name = 'playerId', help = _U('commandgeneric_playerid'), type = 'player'}
 }})
 
-ESX.RegisterCommand('clearloadout', 'admin', function(xPlayer, args, showError)
+--[[ESX.RegisterCommand('clearloadout', 'admin', function(xPlayer, args, showError)
 	for i=#args.playerId.loadout, 1, -1 do
 		args.playerId.removeWeapon(args.playerId.loadout[i].name)
 	end
 end, true, {help = _U('command_clearloadout'), validate = true, arguments = {
 	{name = 'playerId', help = _U('commandgeneric_playerid'), type = 'player'}
+}})--]]
+ESX.RegisterCommand('clearloadout', 'admin', function(xPlayer, args, showError)
+  for k,v in ipairs(args.playerId.loadout) do
+    args.playerId.removeWeapon(v.name)
+  end
+  exports["mf-inventory"]:clearLoadout(args.playerId.identifier)
+end, true, {help = _U('command_clearloadout'), validate = true, arguments = {
+  {name = 'playerId', help = _U('commandgeneric_playerid'), type = 'player'}
 }})
 
 ESX.RegisterCommand('setgroup', 'admin', function(xPlayer, args, showError)

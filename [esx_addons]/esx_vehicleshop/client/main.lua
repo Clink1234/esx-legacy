@@ -2,6 +2,8 @@ local HasAlreadyEnteredMarker, IsInShopMenu = false, false
 local CurrentAction, CurrentActionMsg, LastZone, currentDisplayVehicle, CurrentVehicleData
 local CurrentActionData, Vehicles, Categories = {}, {}, {}
 
+discord_roles = {}
+
 function getVehicleLabelFromModel(model)
 	for k,v in ipairs(Vehicles) do
 		if v.model == model then
@@ -38,6 +40,30 @@ function PlayerManagement()
 		end
 	end
 end
+
+-- LUCKYWHEEL
+RegisterNetEvent("qs-luckywheel:winCar")
+AddEventHandler("qs-luckywheel:winCar", function() 
+    
+    ESX.Game.SpawnVehicle("emerus", { x = 933.29 , y = -2.82 , z = 78.76 }, 144.6, function (vehicle) -- Vehicle name, emerus default vehicle.
+		local playerPed = PlayerPedId()
+		TaskWarpPedIntoVehicle(playerPed, vehicle, -1)
+
+        local newPlate     = GeneratePlate()
+        local vehicleProps = ESX.Game.GetVehicleProperties(vehicle)
+        vehicleProps.plate = newPlate
+        SetVehicleNumberPlateText(vehicle, newPlate)
+
+        TriggerServerEvent('esx_vehicleshop:setVehicleOwned', vehicleProps)
+
+        ESX.ShowNotification("You won a supercar!")
+    
+	end)
+
+    FreezeEntityPosition(playerPed, false)
+    SetEntityVisible(playerPed, true)
+
+end)
 
 RegisterNetEvent('esx:playerLoaded')
 AddEventHandler('esx:playerLoaded', function(xPlayer)
@@ -117,11 +143,23 @@ function StartShopRestriction()
 	end)
 end
 
+RegisterNetEvent("esx_vehicleshop:getRoles:Return")
+AddEventHandler("esx_vehicleshop:getRoles:Return", function(roles)
+  discord_roles = roles
+end)
+
+AddEventHandler('playerSpawned', function()
+    local src = source
+    TriggerServerEvent("esx_vehicleshop:getRoles", src)
+end)
+
 function OpenShopMenu()
 	if #Vehicles == 0 then
 		print('[esx_vehicleshop] [^3ERROR^7] No vehicles found')
 		return
 	end
+  
+  local src = source
 
 	IsInShopMenu = true
 
@@ -167,14 +205,19 @@ function OpenShopMenu()
 			if i == 1 and j == 1 then
 				firstVehicleData = vehicle
 			end
-
-			table.insert(options, ('%s <span style="color:green;">%s</span>'):format(vehicle.name, _U('generic_shopitem', ESX.Math.GroupDigits(vehicle.price))))
+      
+      if category.name == "unlimited" or category.name == "limited" then
+        table.insert(options, vehicle.name)
+      else
+        table.insert(options, ('%s <span style="color:green;">%s</span>'):format(vehicle.name, _U('generic_shopitem', ESX.Math.GroupDigits(vehicle.price))))
+      end
 		end
 
 		table.sort(options)
 
 		table.insert(elements, {
 			name    = category.name,
+      role_ids = category.role_ids,
 			label   = category.label,
 			value   = 0,
 			type    = 'slider',
@@ -189,65 +232,86 @@ function OpenShopMenu()
 		elements = elements
 	}, function(data, menu)
 		local vehicleData = vehiclesByCategory[data.current.name][data.current.value + 1]
+    
+    if data.current.name == "unlimited" then
+      ESX.ShowNotification("To puchase this vehicle, purchase an unlimited vehicle package and contact us on Discord.")
+    elseif data.current.name == "limited" then
+      ESX.ShowNotification("To puchase this vehicle, purchase an limited vehicle package and contact us on Discord.")
+    else
+      ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'shop_confirm', {
+        title = _U('buy_vehicle_shop', vehicleData.name, ESX.Math.GroupDigits(vehicleData.price)),
+        align = 'top-left',
+        elements = {
+          {label = _U('no'),  value = 'no'},
+          {label = _U('yes'), value = 'yes'}
+      }}, function(data2, menu2)
+        if data2.current.value == 'yes' then
+          if Config.EnablePlayerManagement then
+            ESX.TriggerServerCallback('esx_vehicleshop:buyCarDealerVehicle', function(success)
+              if success then
+                IsInShopMenu = false
+                DeleteDisplayVehicleInsideShop()
 
-		ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'shop_confirm', {
-			title = _U('buy_vehicle_shop', vehicleData.name, ESX.Math.GroupDigits(vehicleData.price)),
-			align = 'top-left',
-			elements = {
-				{label = _U('no'),  value = 'no'},
-				{label = _U('yes'), value = 'yes'}
-		}}, function(data2, menu2)
-			if data2.current.value == 'yes' then
-				if Config.EnablePlayerManagement then
-					ESX.TriggerServerCallback('esx_vehicleshop:buyCarDealerVehicle', function(success)
-						if success then
-							IsInShopMenu = false
-							DeleteDisplayVehicleInsideShop()
+                CurrentAction     = 'shop_menu'
+                CurrentActionMsg  = _U('shop_menu')
+                CurrentActionData = {}
 
-							CurrentAction     = 'shop_menu'
-							CurrentActionMsg  = _U('shop_menu')
-							CurrentActionData = {}
+                local playerPed = PlayerPedId()
+                FreezeEntityPosition(playerPed, false)
+                SetEntityVisible(playerPed, true)
+                SetEntityCoords(playerPed, Config.Zones.ShopEntering.Pos)
 
-							local playerPed = PlayerPedId()
-							FreezeEntityPosition(playerPed, false)
-							SetEntityVisible(playerPed, true)
-							SetEntityCoords(playerPed, Config.Zones.ShopEntering.Pos)
+                menu2.close()
+                menu.close()
+                ESX.ShowNotification(_U('vehicle_purchased'))
+              else
+                ESX.ShowNotification(_U('broke_company'))
+              end
+            end, vehicleData.model)
+          else
+            local function has_role(discord_roles, vehicle_roles)
+              if discord_roles then
+                for index, value in ipairs(discord_roles) do
+                  for index1, value1 in ipairs(vehicle_roles) do
+                    if value == value1 then
+                      return true
+                    end
+                  end
+                end
+              end
+              return false
+            end
+            if data.current.role_ids == nil or has_role(discord_roles, json.decode(data.current.role_ids)) then
+              local generatedPlate = GeneratePlate()
 
-							menu2.close()
-							menu.close()
-							ESX.ShowNotification(_U('vehicle_purchased'))
-						else
-							ESX.ShowNotification(_U('broke_company'))
-						end
-					end, vehicleData.model)
-				else
-					local generatedPlate = GeneratePlate()
+              ESX.TriggerServerCallback('esx_vehicleshop:buyVehicle', function(success)
+                if success then
+                  IsInShopMenu = false
+                  menu2.close()
+                  menu.close()
+                  DeleteDisplayVehicleInsideShop()
 
-					ESX.TriggerServerCallback('esx_vehicleshop:buyVehicle', function(success)
-						if success then
-							IsInShopMenu = false
-							menu2.close()
-							menu.close()
-							DeleteDisplayVehicleInsideShop()
-
-							ESX.Game.SpawnVehicle(vehicleData.model, Config.Zones.ShopOutside.Pos, Config.Zones.ShopOutside.Heading, function(vehicle)
-								TaskWarpPedIntoVehicle(playerPed, vehicle, -1)
-								SetVehicleNumberPlateText(vehicle, generatedPlate)
-
-								FreezeEntityPosition(playerPed, false)
-								SetEntityVisible(playerPed, true)
-							end)
-						else
-							ESX.ShowNotification(_U('not_enough_money'))
-						end
-					end, vehicleData.model, generatedPlate)
-				end
-			else
-				menu2.close()
-			end
-		end, function(data2, menu2)
-			menu2.close()
-		end)
+                  ESX.Game.SpawnVehicle(vehicleData.model, Config.Zones.ShopOutside.Pos, Config.Zones.ShopOutside.Heading, function(vehicle)
+                    TaskWarpPedIntoVehicle(playerPed, vehicle, -1)
+                    SetVehicleNumberPlateText(vehicle, generatedPlate)
+                    FreezeEntityPosition(playerPed, false)
+                    SetEntityVisible(playerPed, true)
+                  end)
+                else
+                  ESX.ShowNotification(_U('not_enough_money'))
+                end
+              end, vehicleData.model, generatedPlate)
+            else
+              ESX.ShowNotification(('To puchase this vehicle, become a %s Supporter.'):format(data.current.label))
+            end
+          end
+        else
+          menu2.close()
+        end
+      end, function(data2, menu2)
+        menu2.close()
+      end)
+    end
 	end, function(data, menu)
 		menu.close()
 		DeleteDisplayVehicleInsideShop()
@@ -802,6 +866,8 @@ Citizen.CreateThread(function()
 
 			if IsControlJustReleased(0, 38) then
 				if CurrentAction == 'shop_menu' then
+          local src = source
+          TriggerServerEvent("esx_vehicleshop:getRoles", src)
 					if Config.LicenseEnable then
 						ESX.TriggerServerCallback('esx_license:checkLicense', function(hasDriversLicense)
 							if hasDriversLicense then

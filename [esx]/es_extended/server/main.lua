@@ -23,7 +23,7 @@ Citizen.CreateThread(function()
 	end)
 end)
 
-if Config.Multichar then
+--[[if Config.Multichar then
 	AddEventHandler('esx:onPlayerJoined', function(src, char, data)
 		if not ESX.Players[src] then
 			local identifier = char..':'..ESX.GetIdentifier(src)
@@ -55,6 +55,53 @@ function onPlayerJoined(playerId)
 				if result then
 					loadESXPlayer(identifier, playerId, false)
 				else createESXPlayer(identifier, playerId) end
+			end)
+		end
+	else
+		DropPlayer(playerId, 'there was an error loading your character!\nError code: identifier-missing-ingame\n\nThe cause of this error is not known, your identifier could not be found. Please come back later or report this problem to the server administration team.')
+	end
+end--]]
+
+RegisterNetEvent('esx:onPlayerJoined')
+AddEventHandler('esx:onPlayerJoined', function(slot)
+	if not ESX.Players[source] then
+		onPlayerJoined(source, slot)
+	end
+end)
+
+function onPlayerJoined(playerId, slot)
+	local identifier
+
+	for k,v in ipairs(GetPlayerIdentifiers(playerId)) do
+		if string.match(v, 'license:') then
+			identifier = slot..':'..v:sub(9)
+			break
+		end
+	end
+  
+	if identifier then
+		if ESX.GetPlayerFromIdentifier(identifier) then
+			DropPlayer(playerId, ('there was an error loading your character!\nError code: identifier-active-ingame\n\nThis error is caused by a player on this server who has the same identifier as you have. Make sure you are not playing on the same Rockstar account.\n\nYour Rockstar identifier: %s'):format(identifier))
+		else
+			MySQL.Async.fetchScalar('SELECT 1 FROM users WHERE identifier = @identifier', {
+				['@identifier'] = identifier
+			}, function(result)
+				if result then
+					loadESXPlayer(identifier, playerId)
+				else
+					local accounts = {}
+
+					for account,money in pairs(Config.StartingAccountMoney) do
+						accounts[account] = money
+					end
+
+					MySQL.Async.execute('INSERT INTO users (accounts, identifier) VALUES (@accounts, @identifier)', {
+						['@accounts'] = json.encode(accounts),
+						['@identifier'] = identifier
+					}, function(rowsChanged)
+						--loadESXPlayer(identifier, playerId, true)
+					end)
+				end
 			end)
 		end
 	else
@@ -186,7 +233,7 @@ function loadESXPlayer(identifier, playerId, isNew)
 					if item then
 						foundItems[name] = count
 					else
-						print(('[^3WARNING^7] Ignoring invalid item "%s" for "%s"'):format(name, identifier))
+						--print(('[^3WARNING^7] Ignoring invalid item "%s" for "%s"'):format(name, identifier))
 					end
 				end
 			end
@@ -248,7 +295,7 @@ function loadESXPlayer(identifier, playerId, isNew)
 				userData.coords = json.decode(result[1].position)
 			else
 				print('[^3WARNING^7] Column ^5"position"^0 in ^5"users"^0 table is missing required default value. Using backup coords, fix your database.')
-				userData.coords = {x = -269.4, y = -955.3, z = 31.2, heading = 205.8}
+				userData.coords = {x = -1041.99, y = -2744.62, z = 21.36, heading = 337.3}
 			end
 
 			-- Skin

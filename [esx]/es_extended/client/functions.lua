@@ -739,7 +739,7 @@ ESX.Game.Utils.DrawText3D = function(coords, text, size, font)
 	ClearDrawOrigin()
 end
 
-ESX.ShowInventory = function()
+--[[ESX.ShowInventory = function()
 	local playerPed = ESX.PlayerData.ped
 	local elements, currentWeight = {}, 0
 
@@ -985,6 +985,9 @@ ESX.ShowInventory = function()
 	end, function(data, menu)
 		menu.close()
 	end)
+end--]]
+ESX.ShowInventory = function()
+  exports["mf-inventory"]:openInventory()
 end
 
 RegisterNetEvent('esx:serverCallback')

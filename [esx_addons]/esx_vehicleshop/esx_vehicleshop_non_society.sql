@@ -1,24 +1,5 @@
 USE `es_extended`;
 
-INSERT INTO `addon_account` (name, label, shared) VALUES
-	('society_cardealer','Concessionnaire',1)
-;
-
-INSERT INTO `addon_inventory` (name, label, shared) VALUES
-	('society_cardealer','Concesionnaire',1)
-;
-
-INSERT INTO `jobs` (name, label) VALUES
-	('cardealer','Concessionnaire')
-;
-
-INSERT INTO `job_grades` (job_name, grade, name, label, salary, skin_male, skin_female) VALUES
-	('cardealer',0,'recruit','Recrue',10,'{}','{}'),
-	('cardealer',1,'novice','Novice',25,'{}','{}'),
-	('cardealer',2,'experienced','Experimente',40,'{}','{}'),
-	('cardealer',3,'boss','Patron',0,'{}','{}')
-;
-
 CREATE TABLE `cardealer_vehicles` (
 	`id` int NOT NULL AUTO_INCREMENT,
 	`vehicle` varchar(255) NOT NULL,
@@ -97,7 +78,7 @@ CREATE TABLE `vehicles` (
 
 
 INSERT INTO `vehicles` (name, model, price, category) VALUES
-	('Dilettante','dilettante',8000,'compacts'),
+  ('Dilettante','dilettante',8000,'compacts'),
   ('Issi','issi2',10000,'compacts'),
   ('Issi Classic','issi3',30000,'compacts'),
   ('Panto','panto',10000,'compacts'),
