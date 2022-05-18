@@ -264,8 +264,8 @@ end
 	ESX.UsableItemsCallbacks[item](source, item)
 end--]]
 ESX.UseItem = function(source, item, remove, ...)
-  if ESX.UsableItemsCallbacks[item] then
-    ESX.UsableItemsCallbacks[item](source,remove,...)
+  if Core.UsableItemsCallbacks[item] then
+    Core.UsableItemsCallbacks[item](source,remove,...)
   end
 end
 
