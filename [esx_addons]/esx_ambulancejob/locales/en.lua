@@ -3,6 +3,7 @@ Locales['en'] = {
   ['cloakroom'] = 'locker Room',
   ['ems_clothes_civil'] = 'civilian Clothes',
   ['ems_clothes_ems'] = 'EMS Clothes',
+  ['open_cloackroom'] = 'press ~INPUT_CONTEXT~ to change ~y~clothes~s~.',
   -- Vehicles
   ['ambulance'] = 'ambulance',
   ['helicopter_prompt'] = 'press ~INPUT_CONTEXT~ to access the ~y~Helicopter Actions~s~.',
@@ -29,6 +30,7 @@ Locales['en'] = {
   ['vehicleshop_awaiting_model'] = 'the vehicle is currently ~g~DOWNLOADING & LOADING~s~ please wait',
   ['confirm_no'] = 'no',
   ['confirm_yes'] = 'yes',
+  ['garage_notauthorized'] = 'you\'re not authorized to buy this kind of vehicle.',
   -- Action Menu
   ['revive_inprogress'] = 'a revive is in progress!',
   ['revive_complete'] = 'you have revived ~y~%s~s~',
@@ -71,6 +73,7 @@ Locales['en'] = {
   ['respawn_bleedout_fine_msg'] = 'you paid ~r~$%s~s~ to respawn.',
   ['distress_send'] = 'press [~b~G~s~] to send distress signal',
   ['distress_sent'] = 'distress signal has been sent to available units!',
+  ['combatlog_message'] = 'you have been force-respawned because you\'ve previously left the server when dead.',
   -- Revive
   ['revive_help'] = 'revive a player',
   -- Item

@@ -1,11 +1,11 @@
 Config                            = {}
 
-Config.DrawDistance               = 10.0 -- How close do you need to be in order for the markers to be drawn (in GTA units).
+Config.DrawDistance               = 30.0 -- How close do you need to be in order for the markers to be drawn (in GTA units).
 
 Config.Marker                     = {type = 1, x = 1.5, y = 1.5, z = 0.5, r = 102, g = 0, b = 102, a = 100, rotate = false}
 
-Config.ReviveReward               = 700  -- Revive reward, set to 0 if you don't want it enabled
-Config.SaveDeathStatus              = true -- Save Death Status?
+Config.ReviveReward               = 3000  -- Revive reward, set to 0 if you don't want it enabled
+Config.AntiCombatLog              = true -- Enable anti-combat logging? (Removes Items when a player logs back after intentionally logging out while dead.)
 Config.LoadIpl                    = true -- Disable if you're using fivem-ipl or other IPL loaders
 
 Config.Locale                     = 'en'
@@ -15,59 +15,54 @@ Config.BleedoutTimer              = 60000 * 10 -- time til the player bleeds out
 
 Config.EnablePlayerManagement     = false -- Enable society managing (If you are using esx_society).
 
-Config.RemoveWeaponsAfterRPDeath  = true
-Config.RemoveCashAfterRPDeath     = true
-Config.RemoveItemsAfterRPDeath    = true
+Config.RemoveWeaponsAfterRPDeath  = false
+Config.RemoveCashAfterRPDeath     = false
+Config.RemoveItemsAfterRPDeath    = false
 
 -- Let the player pay for respawning early, only if he can afford it.
 Config.EarlyRespawnFine           = false
 Config.EarlyRespawnFineAmount     = 5000
 
-Config.OxInventory                = ESX.GetConfig().OxInventory
-Config.RespawnPoints = {
-	{coords = vector3(341.0, -1397.3, 32.5), heading = 48.5}
-}
+Config.RespawnPoint = {coords = vector3(358.11, -585.65, 43.28), heading = 66.6}
 
 Config.Hospitals = {
 
-	CentralLosSantos = {
+	PillBoxMedicalCenter = {
 
 		Blip = {
-			coords = vector3(307.7, -1433.4, 28.9),
+			coords = vector3(297.85, -584.24, 43.26),
 			sprite = 61,
 			scale  = 1.2,
 			color  = 2
 		},
 
 		AmbulanceActions = {
-			vector3(270.5, -1363.0, 23.5)
+			--vector3(301.53, -599.47, 42.18)
 		},
 
 		Pharmacies = {
-			vector3(230.1, -1366.1, 38.5)
+			--vector3(230.1, -1366.1, 38.5)
 		},
 
 		Vehicles = {
 			{
-				Spawner = vector3(307.7, -1433.4, 30.0),
-				InsideShop = vector3(446.7, -1355.6, 43.5),
+				Spawner = vector3(340.69, -570.59, 28.8),
+				InsideShop = vector3(318.35, -574.23, 28.8),
 				Marker = {type = 36, x = 1.0, y = 1.0, z = 1.0, r = 100, g = 50, b = 200, a = 100, rotate = true},
 				SpawnPoints = {
-					{coords = vector3(297.2, -1429.5, 29.8), heading = 227.6, radius = 4.0},
-					{coords = vector3(294.0, -1433.1, 29.8), heading = 227.6, radius = 4.0},
-					{coords = vector3(309.4, -1442.5, 29.8), heading = 227.6, radius = 6.0}
+					{coords = vector3(332.25, -577.64, 28.38), heading = 339.73, radius = 4.0},
+					{coords = vector3(325.58, -574.48, 28.38), heading = 339.91, radius = 4.0},
 				}
 			}
 		},
 
 		Helicopters = {
 			{
-				Spawner = vector3(317.5, -1449.5, 46.5),
-				InsideShop = vector3(305.6, -1419.7, 41.5),
+				Spawner = vector3(347.85, -598.5, 74.16),
+				InsideShop = vector3(347.85, -598.5, 74.16),
 				Marker = {type = 34, x = 1.5, y = 1.5, z = 1.5, r = 100, g = 150, b = 150, a = 100, rotate = true},
 				SpawnPoints = {
-					{coords = vector3(313.5, -1465.1, 46.5), heading = 142.7, radius = 10.0},
-					{coords = vector3(299.5, -1453.2, 46.5), heading = 142.7, radius = 10.0}
+					{coords = vector3(352.18, -588.19, 74.52), heading = 71.3, radius = 10.0},
 				}
 			}
 		},
@@ -132,37 +127,444 @@ Config.Hospitals = {
 Config.AuthorizedVehicles = {
 	car = {
 		ambulance = {
-			{model = 'ambulance', price = 5000}
+			{
+        name = "Standard 13 Explorer",
+        model = 'amr13fpiu',
+        extras = {
+           [1] = true,
+           [2] = true,
+           [3] = true,
+           [4] = true,
+           [5] = true,
+           [6] = true,
+           [7] = false,
+           [8] = true,
+           [9] = true,
+           [10] = true,
+           [11] = true,
+           [12] = true
+        },
+        modLivery = 1,
+        price = 0
+      }
 		},
 
 		doctor = {
-			{model = 'ambulance', price = 4500}
+			{
+        name = "Standard 13 Explorer",
+        model = 'amr13fpiu',
+        extras = {
+           [1] = true,
+           [2] = true,
+           [3] = true,
+           [4] = true,
+           [5] = true,
+           [6] = true,
+           [7] = false,
+           [8] = true,
+           [9] = true,
+           [10] = true,
+           [11] = true,
+           [12] = true
+        },
+        modLivery = 1,
+        price = 0
+      },
+      {
+        name = "Standard 16 Explorer",
+        model = 'amr16fpiu',
+        extras = {
+           [1] = true,
+           [2] = true,
+           [3] = true,
+           [4] = true,
+           [5] = true,
+           [6] = true,
+           [7] = false,
+           [8] = true,
+           [9] = true,
+           [10] = true,
+           [11] = true,
+           [12] = true
+        },
+        modLivery = 1,
+        price = 0
+      }
 		},
 
 		chief_doctor = {
-			{model = 'ambulance', price = 3000}
+			{
+        name = "Standard 13 Explorer",
+        model = 'amr13fpiu',
+        extras = {
+           [1] = true,
+           [2] = true,
+           [3] = true,
+           [4] = true,
+           [5] = true,
+           [6] = true,
+           [7] = false,
+           [8] = true,
+           [9] = true,
+           [10] = true,
+           [11] = true,
+           [12] = true
+        },
+        modLivery = 1,
+        price = 0
+      },
+      {
+        name = "Standard 16 Explorer",
+        model = 'amr16fpiu',
+        extras = {
+           [1] = true,
+           [2] = true,
+           [3] = true,
+           [4] = true,
+           [5] = true,
+           [6] = true,
+           [7] = false,
+           [8] = true,
+           [9] = true,
+           [10] = true,
+           [11] = true,
+           [12] = true
+        },
+        modLivery = 1,
+        price = 0
+      },
+      {
+        name = "Standard 18 Tahoe",
+        model = 'amr18tahoe',
+        extras = {
+           [1] = true,
+           [2] = true,
+           [3] = true,
+           [4] = true,
+           [5] = true,
+           [6] = true,
+           [7] = false,
+           [8] = true,
+           [9] = true,
+           [10] = true,
+           [11] = true,
+           [12] = true
+        },
+        modLivery = 1,
+        price = 0
+      },
+      {
+        name = "Standard F150",
+        model = 'amrf150',
+        extras = {
+           [1] = true,
+           [2] = true,
+           [3] = true,
+           [4] = true,
+           [5] = true,
+           [6] = true,
+           [7] = false,
+           [8] = true,
+           [9] = true,
+           [10] = true,
+           [11] = true,
+           [12] = true
+        },
+        modLivery = 1,
+        price = 0
+      }
 		},
 
 		boss = {
-			{model = 'ambulance', price = 2000}
+			{
+        name = "Standard 13 Explorer",
+        model = 'amr13fpiu',
+        extras = {
+           [1] = true,
+           [2] = true,
+           [3] = true,
+           [4] = true,
+           [5] = true,
+           [6] = true,
+           [7] = false,
+           [8] = true,
+           [9] = true,
+           [10] = true,
+           [11] = true,
+           [12] = true
+        },
+        modLivery = 1,
+        price = 0
+      },
+      {
+        name = "Standard 16 Explorer",
+        model = 'amr16fpiu',
+        extras = {
+           [1] = true,
+           [2] = true,
+           [3] = true,
+           [4] = true,
+           [5] = true,
+           [6] = true,
+           [7] = false,
+           [8] = true,
+           [9] = true,
+           [10] = true,
+           [11] = true,
+           [12] = true
+        },
+        modLivery = 1,
+        price = 0
+      },
+      {
+        name = "Standard 18 Tahoe",
+        model = 'amr18tahoe',
+        extras = {
+           [1] = true,
+           [2] = true,
+           [3] = true,
+           [4] = true,
+           [5] = true,
+           [6] = true,
+           [7] = false,
+           [8] = true,
+           [9] = true,
+           [10] = true,
+           [11] = true,
+           [12] = true
+        },
+        modLivery = 1,
+        price = 0
+      },
+      {
+        name = "Standard F150",
+        model = 'amrf150',
+        extras = {
+           [1] = true,
+           [2] = true,
+           [3] = true,
+           [4] = true,
+           [5] = true,
+           [6] = true,
+           [7] = false,
+           [8] = true,
+           [9] = true,
+           [10] = true,
+           [11] = true,
+           [12] = true
+        },
+        modLivery = 1,
+        price = 0
+      },
+      {
+        name = "Standard F250",
+        model = 'amrf250',
+        extras = {
+           [1] = true,
+           [2] = true,
+           [3] = true,
+           [4] = true,
+           [5] = true,
+           [6] = true,
+           [7] = false,
+           [8] = true,
+           [9] = true,
+           [10] = true,
+           [11] = true,
+           [12] = true
+        },
+        modLivery = 1,
+        price = 0
+      }
 		}
 	},
 
 	helicopter = {
 		ambulance = {},
 
-		doctor = {
-			{model = 'buzzard2', price = 150000}
-		},
+		doctor = {},
 
-		chief_doctor = {
-			{model = 'buzzard2', price = 150000},
-			{model = 'seasparrow', price = 300000}
-		},
+		chief_doctor = {},
 
 		boss = {
-			{model = 'buzzard2', price = 10000},
-			{model = 'seasparrow', price = 250000}
+			--{model = 'buzzard2', price = 10000}
+		}
+	}
+}
+
+-- CHECK SKINCHANGER CLIENT MAIN.LUA for matching elements
+Config.Uniforms = {
+	ambulance = {
+		male = {
+			tshirt_1 = 88,  tshirt_2 = 0, -- shirt and accessory
+      bags_1 = 0, bags_2 = 0, -- bags and parachutes / parachute
+			torso_1 = 41,   torso_2 = 2, -- Shirt overlay and jackets / top
+			decals_1 = 0,   decals_2 = -1, -- badges and logos
+			arms = 4, -- upper body
+			pants_1 = 29,   pants_2 = 1, -- lower body
+			shoes_1 = 51,   shoes_2 = 0, -- shoes
+			helmet_1 = 60,  helmet_2 = 1, -- hat
+			chain_1 = 0,    chain_2 = 0, -- scarfs and chains
+      bproof_1 = 0,  bproof_2 = 0,
+      ears_1	=	-1,
+      ears_2	= 0,
+      glasses_2 = 0,
+      neckarm_1 = 0,
+      glasses_1 = -1,
+      mask_2 = 0,
+      sex = 0,
+      lefthand_1 = -1,
+      mask_1 = 0,
+      righthand_1 = -1,
+      lefthand_2 = 0,
+      arms_2 = 0,
+      righthand_2 = 0,
+      neckarm_2 = 4
+		}
+	},
+
+	doctor = {
+		male = {
+			tshirt_1 = 88,  tshirt_2 = 0, -- shirt and accessory
+      bags_1 = 0, bags_2 = 0, -- bags and parachutes / parachute
+			torso_1 = 41,   torso_2 = 2, -- Shirt overlay and jackets / top
+			decals_1 = 0,   decals_2 = -1, -- badges and logos
+			arms = 4, -- upper body
+			pants_1 = 29,   pants_2 = 1, -- lower body
+			shoes_1 = 51,   shoes_2 = 0, -- shoes
+			helmet_1 = 60,  helmet_2 = 1, -- hat
+			chain_1 = 0,    chain_2 = 0, -- scarfs and chains
+      bproof_1 = 0,  bproof_2 = 0,
+      ears_1	=	-1,
+      ears_2	= 0,
+      glasses_2 = 0,
+      neckarm_1 = 0,
+      glasses_1 = -1,
+      mask_2 = 0,
+      sex = 0,
+      lefthand_1 = -1,
+      mask_1 = 0,
+      righthand_1 = -1,
+      lefthand_2 = 0,
+      arms_2 = 0,
+      righthand_2 = 0,
+      neckarm_2 = 4
+		}
+	},
+
+	chief_doctor = {
+		male = {
+			tshirt_1 = 88,  tshirt_2 = 0, -- shirt and accessory
+      bags_1 = 0, bags_2 = 0, -- bags and parachutes / parachute
+			torso_1 = 41,   torso_2 = 2, -- Shirt overlay and jackets / top
+			decals_1 = 0,   decals_2 = -1, -- badges and logos
+			arms = 4, -- upper body
+			pants_1 = 29,   pants_2 = 1, -- lower body
+			shoes_1 = 51,   shoes_2 = 0, -- shoes
+			helmet_1 = 60,  helmet_2 = 1, -- hat
+			chain_1 = 0,    chain_2 = 0, -- scarfs and chains
+      bproof_1 = 0,  bproof_2 = 0,
+      ears_1	=	-1,
+      ears_2	= 0,
+      glasses_2 = 0,
+      neckarm_1 = 0,
+      glasses_1 = -1,
+      mask_2 = 0,
+      sex = 0,
+      lefthand_1 = -1,
+      mask_1 = 0,
+      righthand_1 = -1,
+      lefthand_2 = 0,
+      arms_2 = 0,
+      righthand_2 = 0,
+      neckarm_2 = 4
+		}
+	},
+
+	boss = {
+		male = {
+			tshirt_1 = 88,  tshirt_2 = 0, -- shirt and accessory
+      bags_1 = 0, bags_2 = 0, -- bags and parachutes / parachute
+			torso_1 = 41,   torso_2 = 2, -- Shirt overlay and jackets / top
+			decals_1 = 0,   decals_2 = -1, -- badges and logos
+			arms = 4, -- upper body
+			pants_1 = 29,   pants_2 = 1, -- lower body
+			shoes_1 = 51,   shoes_2 = 0, -- shoes
+			helmet_1 = 60,  helmet_2 = 1, -- hat
+			chain_1 = 0,    chain_2 = 0, -- scarfs and chains
+      bproof_1 = 0,  bproof_2 = 0,
+      ears_1	=	-1,
+      ears_2	= 0,
+      glasses_2 = 0,
+      neckarm_1 = 0,
+      glasses_1 = -1,
+      mask_2 = 0,
+      sex = 0,
+      lefthand_1 = -1,
+      mask_1 = 0,
+      righthand_1 = -1,
+      lefthand_2 = 0,
+      arms_2 = 0,
+      righthand_2 = 0,
+      neckarm_2 = 4
+		}
+	},
+
+	bullet_wear = {
+    male = {
+			tshirt_1 = 88,  tshirt_2 = 0, -- shirt and accessory
+      bags_1 = 0, bags_2 = 0, -- bags and parachutes / parachute
+			torso_1 = 41,   torso_2 = 2, -- Shirt overlay and jackets / top
+			decals_1 = 0,   decals_2 = -1, -- badges and logos
+			arms = 4, -- upper body
+			pants_1 = 29,   pants_2 = 1, -- lower body
+			shoes_1 = 51,   shoes_2 = 0, -- shoes
+			helmet_1 = 60,  helmet_2 = 1, -- hat
+			chain_1 = 0,    chain_2 = 0, -- scarfs and chains
+      bproof_1 = 4,  bproof_2 = 3,
+      ears_1	=	-1,
+      ears_2	= 0,
+      glasses_2 = 0,
+      neckarm_1 = 0,
+      glasses_1 = -1,
+      mask_2 = 0,
+      sex = 0,
+      lefthand_1 = -1,
+      mask_1 = 0,
+      righthand_1 = -1,
+      lefthand_2 = 0,
+      arms_2 = 0,
+      righthand_2 = 0,
+      neckarm_2 = 4
+		}
+	},
+
+	bullet_wear_2 = {
+   male = {
+			tshirt_1 = 88,  tshirt_2 = 0, -- shirt and accessory
+      bags_1 = 0, bags_2 = 0, -- bags and parachutes / parachute
+			torso_1 = 41,   torso_2 = 2, -- Shirt overlay and jackets / top
+			decals_1 = 0,   decals_2 = -1, -- badges and logos
+			arms = 4, -- upper body
+			pants_1 = 29,   pants_2 = 1, -- lower body
+			shoes_1 = 51,   shoes_2 = 0, -- shoes
+			helmet_1 = 60,  helmet_2 = 1, -- hat
+			chain_1 = 0,    chain_2 = 0, -- scarfs and chains
+      bproof_1 = 4,  bproof_2 = 2,
+      ears_1	=	-1,
+      ears_2	= 0,
+      glasses_2 = 0,
+      neckarm_1 = 0,
+      glasses_1 = -1,
+      mask_2 = 0,
+      sex = 0,
+      lefthand_1 = -1,
+      mask_1 = 0,
+      righthand_1 = -1,
+      lefthand_2 = 0,
+      arms_2 = 0,
+      righthand_2 = 0,
+      neckarm_2 = 4
 		}
 	}
 }

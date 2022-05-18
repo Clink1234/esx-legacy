@@ -6,7 +6,7 @@ isInShopMenu = false
 function OpenAmbulanceActionsMenu()
 	local elements = {{label = _U('cloakroom'), value = 'cloakroom'}}
 
-	if Config.EnablePlayerManagement and ESX.GetPlayerData().job.grade_name == 'boss' then
+	if Config.EnablePlayerManagement and ESX.PlayerData.job.grade_name == 'boss' then
 		table.insert(elements, {label = _U('boss_actions'), value = 'boss_actions'})
 	end
 
@@ -72,7 +72,7 @@ function OpenMobileAmbulanceActionsMenu()
 									isBusy = true
 									ESX.ShowNotification(_U('heal_inprogress'))
 									TaskStartScenarioInPlace(playerPed, 'CODE_HUMAN_MEDIC_TEND_TO_DEAD', 0, true)
-									Wait(10000)
+									Citizen.Wait(10000)
 									ClearPedTasks(playerPed)
 
 									TriggerServerEvent('esx_ambulancejob:removeItem', 'bandage')
@@ -100,7 +100,7 @@ function OpenMobileAmbulanceActionsMenu()
 									isBusy = true
 									ESX.ShowNotification(_U('heal_inprogress'))
 									TaskStartScenarioInPlace(playerPed, 'CODE_HUMAN_MEDIC_TEND_TO_DEAD', 0, true)
-									Wait(10000)
+									Citizen.Wait(10000)
 									ClearPedTasks(playerPed)
 
 									TriggerServerEvent('esx_ambulancejob:removeItem', 'medikit')
@@ -142,7 +142,7 @@ function revivePlayer(closestPlayer)
 				ESX.ShowNotification(_U('revive_inprogress'))
 
 				for i=1, 15 do
-					Wait(900)
+					Citizen.Wait(900)
 
 					ESX.Streaming.RequestAnimDict(lib, function()
 						TaskPlayAnim(playerPed, lib, anim, 8.0, -8.0, -1, 0, 0.0, false, false, false)
@@ -167,7 +167,7 @@ function FastTravel(coords, heading)
 	DoScreenFadeOut(800)
 
 	while not IsScreenFadedOut() do
-		Wait(500)
+		Citizen.Wait(500)
 	end
 
 	ESX.Game.Teleport(playerPed, coords, function()
@@ -180,13 +180,13 @@ function FastTravel(coords, heading)
 end
 
 -- Draw markers & Marker logic
-CreateThread(function()
+Citizen.CreateThread(function()
 	while true do
-		local sleep = 1500
+		Citizen.Wait(0)
 
-		if ESX.GetPlayerData().job and ESX.GetPlayerData().job.name == 'ambulance' then
+		if ESX.PlayerData.job and ESX.PlayerData.job.name == 'ambulance' then
 			local playerCoords = GetEntityCoords(PlayerPedId())
-			local isInMarker, hasExited = false, false
+			local letSleep, isInMarker, hasExited = true, false, false
 			local currentHospital, currentPart, currentPartNum
 
 			for hospitalNum,hospital in pairs(Config.Hospitals) do
@@ -195,9 +195,8 @@ CreateThread(function()
 					local distance = #(playerCoords - v)
 
 					if distance < Config.DrawDistance then
-						sleep = 0
 						DrawMarker(Config.Marker.type, v, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Config.Marker.x, Config.Marker.y, Config.Marker.z, Config.Marker.r, Config.Marker.g, Config.Marker.b, Config.Marker.a, false, false, 2, Config.Marker.rotate, nil, nil, false)
-						
+						letSleep = false
 
 						if distance < Config.Marker.x then
 							isInMarker, currentHospital, currentPart, currentPartNum = true, hospitalNum, 'AmbulanceActions', k
@@ -210,9 +209,8 @@ CreateThread(function()
 					local distance = #(playerCoords - v)
 
 					if distance < Config.DrawDistance then
-						sleep = 0
 						DrawMarker(Config.Marker.type, v, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Config.Marker.x, Config.Marker.y, Config.Marker.z, Config.Marker.r, Config.Marker.g, Config.Marker.b, Config.Marker.a, false, false, 2, Config.Marker.rotate, nil, nil, false)
-						
+						letSleep = false
 
 						if distance < Config.Marker.x then
 							isInMarker, currentHospital, currentPart, currentPartNum = true, hospitalNum, 'Pharmacy', k
@@ -225,9 +223,8 @@ CreateThread(function()
 					local distance = #(playerCoords - v.Spawner)
 
 					if distance < Config.DrawDistance then
-						sleep = 0
 						DrawMarker(v.Marker.type, v.Spawner, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, v.Marker.x, v.Marker.y, v.Marker.z, v.Marker.r, v.Marker.g, v.Marker.b, v.Marker.a, false, false, 2, v.Marker.rotate, nil, nil, false)
-						
+						letSleep = false
 
 						if distance < v.Marker.x then
 							isInMarker, currentHospital, currentPart, currentPartNum = true, hospitalNum, 'Vehicles', k
@@ -240,9 +237,8 @@ CreateThread(function()
 					local distance = #(playerCoords - v.Spawner)
 
 					if distance < Config.DrawDistance then
-						sleep = 0
 						DrawMarker(v.Marker.type, v.Spawner, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, v.Marker.x, v.Marker.y, v.Marker.z, v.Marker.r, v.Marker.g, v.Marker.b, v.Marker.a, false, false, 2, v.Marker.rotate, nil, nil, false)
-						
+						letSleep = false
 
 						if distance < v.Marker.x then
 							isInMarker, currentHospital, currentPart, currentPartNum = true, hospitalNum, 'Helicopters', k
@@ -255,9 +251,8 @@ CreateThread(function()
 					local distance = #(playerCoords - v.From)
 
 					if distance < Config.DrawDistance then
-						sleep = 0
 						DrawMarker(v.Marker.type, v.From, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, v.Marker.x, v.Marker.y, v.Marker.z, v.Marker.r, v.Marker.g, v.Marker.b, v.Marker.a, false, false, 2, v.Marker.rotate, nil, nil, false)
-						
+						letSleep = false
 
 						if distance < v.Marker.x then
 							isInMarker, currentHospital, currentPart, currentPartNum = true, hospitalNum, 'FastTravelsPrompt', k
@@ -285,8 +280,41 @@ CreateThread(function()
 				HasAlreadyEnteredMarker = false
 				TriggerEvent('esx_ambulancejob:hasExitedMarker', LastHospital, LastPart, LastPartNum)
 			end
+
+			if letSleep then
+				Citizen.Wait(500)
+			end
+		else
+			Citizen.Wait(500)
 		end
-		Wait(sleep)
+	end
+end)
+
+-- Fast travels
+Citizen.CreateThread(function()
+	while true do
+		Citizen.Wait(0)
+		local playerCoords, letSleep = GetEntityCoords(PlayerPedId()), true
+
+		for hospitalNum,hospital in pairs(Config.Hospitals) do
+			-- Fast Travels
+			for k,v in ipairs(hospital.FastTravels) do
+				local distance = #(playerCoords - v.From)
+
+				if distance < Config.DrawDistance then
+					DrawMarker(v.Marker.type, v.From, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, v.Marker.x, v.Marker.y, v.Marker.z, v.Marker.r, v.Marker.g, v.Marker.b, v.Marker.a, false, false, 2, v.Marker.rotate, nil, nil, false)
+					letSleep = false
+
+					if distance < v.Marker.x then
+						FastTravel(v.To.coords, v.To.heading)
+					end
+				end
+			end
+		end
+
+		if letSleep then
+			Citizen.Wait(500)
+		end
 	end
 end)
 
@@ -325,12 +353,11 @@ AddEventHandler('esx_ambulancejob:hasExitedMarker', function(hospital, part, par
 end)
 
 -- Key Controls
-CreateThread(function()
+Citizen.CreateThread(function()
 	while true do
-		local sleep = 1500
+		Citizen.Wait(0)
 
 		if CurrentAction then
-			sleep = 0
 			ESX.ShowHelpNotification(CurrentActionMsg)
 
 			if IsControlJustReleased(0, 38) then
@@ -348,37 +375,16 @@ CreateThread(function()
 
 				CurrentAction = nil
 			end
-		end
 
-		local playerCoords, letSleep = GetEntityCoords(PlayerPedId()), true
-
-		for hospitalNum,hospital in pairs(Config.Hospitals) do
-			-- Fast Travels
-			for k,v in ipairs(hospital.FastTravels) do
-				local distance = #(playerCoords - v.From)
-
-				if distance < Config.DrawDistance then
-					sleep = 0
-					DrawMarker(v.Marker.type, v.From, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, v.Marker.x, v.Marker.y, v.Marker.z, v.Marker.r, v.Marker.g, v.Marker.b, v.Marker.a, false, false, 2, v.Marker.rotate, nil, nil, false)
-					
-
-					if distance < v.Marker.x then
-						FastTravel(v.To.coords, v.To.heading)
-					end
-				end
+		elseif ESX.PlayerData.job and ESX.PlayerData.job.name == 'ambulance' and not isDead then
+			if IsControlJustReleased(0, 167) then
+				OpenMobileAmbulanceActionsMenu()
 			end
+		else
+			Citizen.Wait(500)
 		end
-		Wait(sleep)
 	end
 end)
-
-RegisterCommand("ambulance", function(src)
-	if ESX.GetPlayerData().job and ESX.GetPlayerData().job.name == 'ambulance' and not ESX.GetPlayerData().dead then 
-		OpenMobileAmbulanceActionsMenu()
-	end
-end)
-
-RegisterKeyMapping("ambulance", "Open Ambulance Actions Menu", "keyboard", "k")
 
 RegisterNetEvent('esx_ambulancejob:putInVehicle')
 AddEventHandler('esx_ambulancejob:putInVehicle', function()
@@ -401,7 +407,7 @@ AddEventHandler('esx_ambulancejob:putInVehicle', function()
 	end
 end)
 
-function OpenCloakroomMenu()
+--[[function OpenCloakroomMenu()
 	ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'cloakroom', {
 		title    = _U('cloakroom'),
 		align    = 'top-left',
@@ -435,6 +441,93 @@ function OpenCloakroomMenu()
 		menu.close()
 	end, function(data, menu)
 		menu.close()
+	end)
+end--]]
+
+function setUniform(uniform, playerPed)
+	TriggerEvent('skinchanger:getSkin', function(skin)
+    print(skin.sex)
+		local uniformObject
+
+		if skin.sex == 0 then
+			uniformObject = Config.Uniforms[uniform].male
+		else
+			uniformObject = Config.Uniforms[uniform].female
+		end
+
+		if uniformObject then
+			TriggerEvent('skinchanger:loadClothes', skin, uniformObject)
+
+			if uniform == 'bullet_wear' or uniform == 'bullet_wear_2' then
+				SetPedArmour(playerPed, 100)
+			end
+		else
+			ESX.ShowNotification("No outfit available")
+		end
+	end)
+end
+
+function cleanPlayer(playerPed)
+	SetPedArmour(playerPed, 0)
+	ClearPedBloodDamage(playerPed)
+	ResetPedVisibleDamage(playerPed)
+	ClearPedLastWeaponDamage(playerPed)
+	ResetPedMovementClipset(playerPed, 0)
+end
+
+function OpenCloakroomMenu()
+	local playerPed = PlayerPedId()
+	local grade = ESX.PlayerData.job.grade_name
+
+	local elements = {
+		{label = "Citizen Wear", value = 'citizen_wear'},
+		{label = _U('ems_clothes_ems'), uniform = grade},
+		{label = "EMS Clothes with Vest", uniform = 'bullet_wear'},
+    {label = "EMS Clothes with Vest 2", uniform = 'bullet_wear_2'},
+	}
+
+	ESX.UI.Menu.CloseAll()
+
+	ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'cloakroom', {
+		title    = _U('cloakroom'),
+		align    = 'top-left',
+		elements = elements
+	}, function(data, menu)
+		cleanPlayer(playerPed)
+
+		if data.current.value == 'citizen_wear' then
+			ESX.TriggerServerCallback('esx_skin:getPlayerSkin', function(skin)
+        TriggerEvent('skinchanger:loadSkin', skin)
+      end)
+		end
+
+		if data.current.uniform then
+			setUniform(data.current.uniform, playerPed)
+		elseif data.current.value == 'freemode_ped' then
+			local modelHash
+
+			ESX.TriggerServerCallback('esx_skin:getPlayerSkin', function(skin, jobSkin)
+				if skin.sex == 0 then
+					modelHash = GetHashKey(data.current.maleModel)
+				else
+					modelHash = GetHashKey(data.current.femaleModel)
+				end
+
+				ESX.Streaming.RequestModel(modelHash, function()
+					SetPlayerModel(PlayerId(), modelHash)
+					SetModelAsNoLongerNeeded(modelHash)
+					SetPedDefaultComponentVariation(PlayerPedId())
+
+					TriggerEvent('esx:restoreLoadout')
+				end)
+			end)
+		end
+	end, function(data, menu)
+		menu.close()
+
+		CurrentAction     = 'menu_cloakroom'
+		CurrentActionMsg  = _U('open_cloackroom')
+		CurrentActionData = {}
 	end)
 end
 
@@ -474,7 +567,7 @@ end)
 
 RegisterNetEvent('esx:setJob')
 AddEventHandler('esx:setJob', function(job)
-	if isOnDuty and job ~= 'ambulance' then
+	if job ~= 'ambulance' then
 		for playerId,v in pairs(deadPlayerBlips) do
 			RemoveBlip(v)
 			deadPlayerBlips[playerId] = nil
@@ -488,29 +581,27 @@ RegisterNetEvent('esx_ambulancejob:setDeadPlayers')
 AddEventHandler('esx_ambulancejob:setDeadPlayers', function(_deadPlayers)
 	deadPlayers = _deadPlayers
 
-	if isOnDuty then
-		for playerId,v in pairs(deadPlayerBlips) do
-			RemoveBlip(v)
-			deadPlayerBlips[playerId] = nil
-		end
+  for playerId,v in pairs(deadPlayerBlips) do
+    RemoveBlip(v)
+    deadPlayerBlips[playerId] = nil
+  end
 
-		for playerId,status in pairs(deadPlayers) do
-			if status == 'distress' then
-				local player = GetPlayerFromServerId(playerId)
-				local playerPed = GetPlayerPed(player)
-				local blip = AddBlipForEntity(playerPed)
+  for playerId,status in pairs(deadPlayers) do
+    if status == 'distress' then
+      --[[local player = GetPlayerFromServerId(playerId)
+      local playerPed = GetPlayerPed(player)
+      local blip = AddBlipForEntity(playerPed)
 
-				SetBlipSprite(blip, 303)
-				SetBlipColour(blip, 1)
-				SetBlipFlashes(blip, true)
-				SetBlipCategory(blip, 7)
+      SetBlipSprite(blip, 303)
+      SetBlipColour(blip, 1)
+      SetBlipFlashes(blip, true)
+      SetBlipCategory(blip, 7)
 
-				BeginTextCommandSetBlipName('STRING')
-				AddTextComponentSubstringPlayerName(_U('blip_dead'))
-				EndTextCommandSetBlipName(blip)
+      BeginTextCommandSetBlipName('STRING')
+      AddTextComponentSubstringPlayerName(_U('blip_dead'))
+      EndTextCommandSetBlipName(blip)
 
-				deadPlayerBlips[playerId] = blip
-			end
-		end
-	end
+      deadPlayerBlips[playerId] = blip--]]
+    end
+  end
 end)

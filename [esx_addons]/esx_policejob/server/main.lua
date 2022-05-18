@@ -9,8 +9,8 @@ TriggerEvent('esx_society:registerSociety', 'police', 'Police', 'society_police'
 
 RegisterNetEvent('esx_policejob:confiscatePlayerItem')
 AddEventHandler('esx_policejob:confiscatePlayerItem', function(target, itemType, itemName, amount)
-	local source = source
-	local sourceXPlayer = ESX.GetPlayerFromId(source)
+	local _source = source
+	local sourceXPlayer = ESX.GetPlayerFromId(_source)
 	local targetXPlayer = ESX.GetPlayerFromId(target)
 
 	if sourceXPlayer.job.name ~= 'police' then
@@ -44,7 +44,7 @@ AddEventHandler('esx_policejob:confiscatePlayerItem', function(target, itemType,
 		-- does the target player have enough money?
 		if targetAccount.money >= amount then
 			targetXPlayer.removeAccountMoney(itemName, amount)
-			sourceXPlayer.addAccountMoney   (itemName, amount)
+			--sourceXPlayer.addAccountMoney(itemName, amount)
 
 			sourceXPlayer.showNotification(_U('you_confiscated_account', amount, itemName, targetXPlayer.name))
 			targetXPlayer.showNotification(_U('got_confiscated_account', amount, itemName, sourceXPlayer.name))
@@ -57,7 +57,7 @@ AddEventHandler('esx_policejob:confiscatePlayerItem', function(target, itemType,
 
 		-- does the target player have weapon?
 		if targetXPlayer.hasWeapon(itemName) then
-			targetXPlayer.removeWeapon(itemName)
+			targetXPlayer.removeWeapon(itemName, amount)
 			sourceXPlayer.addWeapon   (itemName, amount)
 
 			sourceXPlayer.showNotification(_U('you_confiscated_weapon', ESX.GetWeaponLabel(itemName), targetXPlayer.name, amount))
@@ -114,8 +114,8 @@ end)
 
 RegisterNetEvent('esx_policejob:getStockItem')
 AddEventHandler('esx_policejob:getStockItem', function(itemName, count)
-	local source = source
-	local xPlayer = ESX.GetPlayerFromId(source)
+	local _source = source
+	local xPlayer = ESX.GetPlayerFromId(_source)
 
 	TriggerEvent('esx_addoninventory:getSharedInventory', 'society_police', function(inventory)
 		local inventoryItem = inventory.getItem(itemName)
@@ -156,6 +156,11 @@ AddEventHandler('esx_policejob:putStockItems', function(itemName, count)
 	end)
 end)
 
+function round(num, numDecimalPlaces)
+  local mult = 10^(numDecimalPlaces or 0)
+  return math.floor(num * mult + 0.5) / mult
+end
+
 ESX.RegisterServerCallback('esx_policejob:getOtherPlayerData', function(source, cb, target, notify)
 	local xPlayer = ESX.GetPlayerFromId(target)
 
@@ -177,12 +182,14 @@ ESX.RegisterServerCallback('esx_policejob:getOtherPlayerData', function(source, 
 			data.dob = xPlayer.get('dateofbirth')
 			data.height = xPlayer.get('height')
 
-			if xPlayer.get('sex') == 'm' then data.sex = 'male' else data.sex = 'female' end
+			if xPlayer.get('sex') == 'M' then data.sex = 'male' else data.sex = 'female' end
 		end
 
 		TriggerEvent('esx_status:getStatus', target, 'drunk', function(status)
 			if status then
-				data.drunk = ESX.Math.Round(status.percent)
+        --(25 * 0.01131370849) ^2
+        local bacnum = round((status.percent * 0.01131370849) * (status.percent * 0.01131370849), 2)
+				data.drunk = bacnum
 			end
 		end)
 
@@ -198,36 +205,44 @@ ESX.RegisterServerCallback('esx_policejob:getOtherPlayerData', function(source, 
 end)
 
 ESX.RegisterServerCallback('esx_policejob:getFineList', function(source, cb, category)
-	MySQL.query('SELECT * FROM fine_types WHERE category = ?', {category},
-	function(fines)
+	MySQL.Async.fetchAll('SELECT * FROM fine_types WHERE category = @category', {
+		['@category'] = category
+	}, function(fines)
 		cb(fines)
 	end)
 end)
 
 ESX.RegisterServerCallback('esx_policejob:getVehicleInfos', function(source, cb, plate)
-	local retrivedInfo = {
-		plate = plate
-	}
-	if Config.EnableESXIdentity then
-		MySQL.single('SELECT users.firstname, users.lastname FROM owned_vehicles JOIN users ON owned_vehicles.owner = users.identifier WHERE plate = ?', {plate},
-		function(result)
-			if result then
-				retrivedInfo.owner = ('%s %s'):format(result.firstname, result.lastname)
+	MySQL.Async.fetchAll('SELECT owner FROM owned_vehicles WHERE plate = @plate', {
+		['@plate'] = plate
+	}, function(result)
+		local retrivedInfo = {plate = plate}
+
+		if result[1] then
+			local xPlayer = ESX.GetPlayerFromIdentifier(result[1].owner)
+
+			-- is the owner online?
+			if xPlayer then
+				retrivedInfo.owner = xPlayer.getName()
+				cb(retrivedInfo)
+			elseif Config.EnableESXIdentity then
+				MySQL.Async.fetchAll('SELECT firstname, lastname FROM users WHERE identifier = @identifier',  {
+					['@identifier'] = result[1].owner
+				}, function(result2)
+					if result2[1] then
+						retrivedInfo.owner = ('%s %s'):format(result2[1].firstname, result2[1].lastname)
+						cb(retrivedInfo)
+					else
+						cb(retrivedInfo)
+					end
+				end)
+			else
+				cb(retrivedInfo)
 			end
+		else
 			cb(retrivedInfo)
-		end)
-	else
-		MySQL.scalar('SELECT owner FROM owned_vehicles WHERE plate = ?', {plate},
-		function(owner)
-			if owner then
-				local xPlayer = ESX.GetPlayerFromIdentifier(owner)
-				if xPlayer then
-					retrivedInfo.owner = xPlayer.getName()
-				end
-			end
-			cb(retrivedInfo)
-		end)
-	end
+		end
+	end)
 end)
 
 ESX.RegisterServerCallback('esx_policejob:getArmoryWeapons', function(source, cb)
@@ -270,7 +285,7 @@ ESX.RegisterServerCallback('esx_policejob:addArmoryWeapon', function(source, cb,
 
 		store.set('weapons', weapons)
 		cb()
-		end)
+	end)
 end)
 
 ESX.RegisterServerCallback('esx_policejob:removeArmoryWeapon', function(source, cb, weaponName)
@@ -356,49 +371,71 @@ ESX.RegisterServerCallback('esx_policejob:buyJobVehicle', function(source, cb, v
 	local price = getPriceFromHash(vehicleProps.model, xPlayer.job.grade_name, type)
 
 	-- vehicle model not found
-	if price == 0 then
-		print(('esx_policejob: %s attempted to exploit the shop! (invalid vehicle model)'):format(xPlayer.identifier))
-		cb(false)
-	else
+	if price then
 		if xPlayer.getMoney() >= price then
 			xPlayer.removeMoney(price)
 
-			MySQL.insert('INSERT INTO owned_vehicles (owner, vehicle, plate, type, job, `stored`) VALUES (?, ?, ?, ?, ?, ?)', { xPlayer.identifier, json.encode(vehicleProps), vehicleProps.plate, type, xPlayer.job.name, true},
-			function (rowsChanged)
+			MySQL.Async.execute('INSERT INTO owned_vehicles (owner, vehicle, plate, type, job, `stored`) VALUES (@owner, @vehicle, @plate, @type, @job, @stored)', {
+				['@owner'] = xPlayer.identifier,
+				['@vehicle'] = json.encode(vehicleProps),
+				['@plate'] = vehicleProps.plate,
+				['@type'] = type,
+				['@job'] = xPlayer.job.name,
+				['@stored'] = true
+			}, function (rowsChanged)
+        exports['t1ger_keys']:UpdateKeysToDatabase(vehicleProps.plate, true)
 				cb(true)
 			end)
 		else
 			cb(false)
 		end
+	else
+    print(('esx_policejob: %s attempted to exploit the shop! (invalid vehicle model)'):format(xPlayer.identifier))
+		cb(false)
 	end
 end)
 
-ESX.RegisterServerCallback('esx_policejob:storeNearbyVehicle', function(source, cb, plates)
+ESX.RegisterServerCallback('esx_policejob:storeNearbyVehicle', function(source, cb, nearbyVehicles)
 	local xPlayer = ESX.GetPlayerFromId(source)
+	local foundPlate, foundNum
 
-	local plate = MySQL.scalar.await('SELECT plate FROM owned_vehicles WHERE owner = ? AND plate IN (?) AND job = ?', {xPlayer.identifier, plates, xPlayer.job.name})
+	for k,v in ipairs(nearbyVehicles) do
+		local result = MySQL.Sync.fetchAll('SELECT plate FROM owned_vehicles WHERE owner = @owner AND plate = @plate AND job = @job', {
+			['@owner'] = xPlayer.identifier,
+			['@plate'] = v.plate,
+			['@job'] = xPlayer.job.name
+		})
 
-	if plate then
-		MySQL.update('UPDATE owned_vehicles SET `stored` = true WHERE owner = ? AND plate = ? AND job = ?', {xPlayer.identifier, plate, xPlayer.job.name},
-		function(rowsChanged)
+		if result[1] then
+			foundPlate, foundNum = result[1].plate, k
+			break
+		end
+	end
+
+	if not foundPlate then
+		cb(false)
+	else
+		MySQL.Async.execute('UPDATE owned_vehicles SET `stored` = true WHERE owner = @owner AND plate = @plate AND job = @job', {
+			['@owner'] = xPlayer.identifier,
+			['@plate'] = foundPlate,
+			['@job'] = xPlayer.job.name
+		}, function (rowsChanged)
 			if rowsChanged == 0 then
+				print(('esx_policejob: %s has exploited the garage!'):format(xPlayer.identifier))
 				cb(false)
 			else
-				cb(plate)
+				cb(true, foundNum)
 			end
 		end)
-	else
-		cb(false)
 	end
 end)
 
 function getPriceFromHash(vehicleHash, jobGrade, type)
 	local vehicles = Config.AuthorizedVehicles[type][jobGrade]
 
-	for i = 1, #vehicles do
-		local vehicle = vehicles[i]
-		if GetHashKey(vehicle.model) == vehicleHash then
-			return vehicle.price
+	for k,v in ipairs(vehicles) do
+		if GetHashKey(v.model) == vehicleHash then
+			return v.price
 		end
 	end
 
@@ -422,9 +459,8 @@ AddEventHandler('playerDropped', function()
 	local playerId = source
 	if playerId then
 		local xPlayer = ESX.GetPlayerFromId(playerId)
-
 		if xPlayer and xPlayer.job.name == 'police' then
-			Wait(5000)
+			Citizen.Wait(5000)
 			TriggerClientEvent('esx_policejob:updateBlip', -1)
 		end
 	end
@@ -432,11 +468,9 @@ end)
 
 RegisterNetEvent('esx_policejob:spawned')
 AddEventHandler('esx_policejob:spawned', function()
-	local playerId = source
 	local xPlayer = ESX.GetPlayerFromId(playerId)
-
 	if xPlayer and xPlayer.job.name == 'police' then
-		Wait(5000)
+		Citizen.Wait(5000)
 		TriggerClientEvent('esx_policejob:updateBlip', -1)
 	end
 end)
@@ -444,13 +478,13 @@ end)
 RegisterNetEvent('esx_policejob:forceBlip')
 AddEventHandler('esx_policejob:forceBlip', function()
 	for _, xPlayer in pairs(ESX.GetExtendedPlayers('job', 'police')) do
-		TriggerClientEvent('esx_policejob:updateBlip', xPlayer.source)
+		TriggerClientEvent('esx_policejob:updateBlip', -1)
 	end
 end)
 
 AddEventHandler('onResourceStart', function(resource)
 	if resource == GetCurrentResourceName() then
-		Wait(5000)
+		Citizen.Wait(5000)
 		for _, xPlayer in pairs(ESX.GetExtendedPlayers('job', 'police')) do
 			TriggerClientEvent('esx_policejob:updateBlip', xPlayer.source)
 		end

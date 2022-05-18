@@ -1,17 +1,15 @@
 Config                            = {}
 
-Config.DrawDistance               = 10.0 -- How close do you need to be for the markers to be drawn (in GTA units).
+Config.DrawDistance               = 30.0 -- How close do you need to be for the markers to be drawn (in GTA units).
 
-Config.NPCJobEarnings             = {min = 300, max = 600}
-Config.MinimumDistance            = 3000 -- Minimum NPC job destination distance from the pickup in GTA units, a higher number prevents nearby destionations.
+Config.NPCJobEarnings             = {min = 70, max = 75}
+Config.MinimumDistance            = 1000 -- Minimum NPC job destination distance from the pickup in GTA units, a higher number prevents nearby destionations.
 
 Config.MaxInService               = -1 -- How much people can be in service at once?
-Config.EnablePlayerManagement     = true -- Enable society managing.
+Config.EnablePlayerManagement     = false -- Enable society managing.
 Config.EnableSocietyOwnedVehicles = false
 
 Config.Locale                     = 'en'
-
-Config.OxInventory                = ESX.GetConfig().OxInventory
 
 Config.AuthorizedVehicles = {
 	{model = 'taxi', label = 'Taxi'}
@@ -40,11 +38,11 @@ Config.Zones = {
 		Type  = 1, Rotate = false
 	},
 
-	TaxiActions = {
+	--[[TaxiActions = {
 		Pos   = {x = 903.32, y = -170.55, z = 74.0},
 		Size  = {x = 1.0, y = 1.0, z = 1.0},
 		Color = {r = 204, g = 204, b = 0},
-		Type  = 20, Rotate = true
+		Type  = -1, Rotate = true
 	},
 
 	Cloakroom = {
@@ -52,7 +50,7 @@ Config.Zones = {
 		Size    = {x = 1.0, y = 1.0, z = 1.0},
 		Color   = {r = 204, g = 204, b = 0},
 		Type    = 21, Rotate = true
-	}
+	}--]]
 }
 
 Config.JobLocations = {

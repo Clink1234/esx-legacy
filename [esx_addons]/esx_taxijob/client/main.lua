@@ -134,7 +134,8 @@ function OpenVehicleSpawnerMenu()
 			for i=1, #vehicles, 1 do
 				table.insert(elements, {
 					label = GetDisplayNameFromVehicleModel(vehicles[i].model) .. ' [' .. vehicles[i].plate .. ']',
-					value = vehicles[i]
+					value = vehicles[i],
+          plate = vehicles[i].plate
 				})
 			end
 
@@ -155,6 +156,7 @@ function OpenVehicleSpawnerMenu()
 					ESX.Game.SetVehicleProperties(vehicle, vehicleProps)
 					local playerPed = PlayerPedId()
 					TaskWarpPedIntoVehicle(playerPed, vehicle, -1)
+          exports['t1ger_keys']:GiveJobKeys(data.current.plate, GetLabelText(label), true)
 				end)
 
 				TriggerServerEvent('esx_society:removeVehicleFromGarage', 'taxi', vehicleProps)
@@ -183,6 +185,10 @@ function OpenVehicleSpawnerMenu()
 			ESX.Game.SpawnVehicle(data.current.model, Config.Zones.VehicleSpawnPoint.Pos, Config.Zones.VehicleSpawnPoint.Heading, function(vehicle)
 				local playerPed = PlayerPedId()
 				TaskWarpPedIntoVehicle(playerPed, vehicle, -1)
+        
+        local jobVehiclePlate = GetVehicleNumberPlateText(vehicle)
+        local vehName = GetLabelText(GetDisplayNameFromVehicleModel(GetEntityModel(vehicle)))
+        exports['t1ger_keys']:GiveJobKeys(jobVehiclePlate, vehName, true)
 			end)
 		end, function(data, menu)
 			CurrentAction     = 'vehicle_spawner'
@@ -232,10 +238,7 @@ function OpenTaxiActionsMenu()
 		elements = elements
 	}, function(data, menu)
 
-		if Config.OxInventory and (data.current.value == 'put_stock' or data.current.value == 'get_stock') then
-			exports.ox_inventory:openInventory('stash', 'society_taxi')
-			return ESX.UI.Menu.CloseAll()
-		elseif data.current.value == 'put_stock' then
+		if data.current.value == 'put_stock' then
 			OpenPutStocksMenu()
 		elseif data.current.value == 'get_stock' then
 			OpenGetStocksMenu()
@@ -261,7 +264,7 @@ function OpenMobileTaxiActionsMenu()
 		title    = _U('taxi'),
 		align    = 'top-left',
 		elements = {
-			{label = _U('billing'),   value = 'billing'},
+			--{label = _U('billing'),   value = 'billing'},
 			{label = _U('start_job'), value = 'start_job'}
 	}}, function(data, menu)
 		if data.current.value == 'billing' then
@@ -450,15 +453,15 @@ AddEventHandler('esx_taxijob:hasEnteredMarker', function(zone)
 			CurrentActionMsg  = _U('store_veh')
 			CurrentActionData = { vehicle = vehicle }
 		end
-	elseif zone == 'TaxiActions' then
+	--[[elseif zone == 'TaxiActions' then
 		CurrentAction     = 'taxi_actions_menu'
 		CurrentActionMsg  = _U('press_to_open')
-		CurrentActionData = {}
+		CurrentActionData = {}--]]
 
-	elseif zone == 'Cloakroom' then
+	--[[elseif zone == 'Cloakroom' then
 		CurrentAction     = 'cloakroom'
 		CurrentActionMsg  = _U('cloakroom_prompt')
-		CurrentActionData = {}
+		CurrentActionData = {}--]]
 	end
 end)
 
@@ -480,7 +483,7 @@ end)
 
 -- Create Blips
 CreateThread(function()
-	local blip = AddBlipForCoord(Config.Zones.TaxiActions.Pos.x, Config.Zones.TaxiActions.Pos.y, Config.Zones.TaxiActions.Pos.z)
+	local blip = AddBlipForCoord(Config.Zones.VehicleSpawner.Pos.x, Config.Zones.VehicleSpawner.Pos.y, Config.Zones.VehicleSpawner.Pos.z)
 
 	SetBlipSprite (blip, 198)
 	SetBlipDisplay(blip, 4)
@@ -503,8 +506,8 @@ CreateThread(function()
 			local isInMarker, letSleep, currentZone = false, true
 
 			for k,v in pairs(Config.Zones) do
-				local zonePos = vector3(v.Pos.x, v.Pos.y, v.Pos.z)
-				local distance = #(coords - zonePos)
+        local position = vector3(v.Pos.x, v.Pos.y, v.Pos.z)
+				local distance = #(coords - position)
 
 				if v.Type ~= -1 and distance < Config.DrawDistance then
 					letSleep = false
@@ -740,7 +743,7 @@ CreateThread(function()
 	end
 end)
 RegisterCommand('taximenu', function()
-	if not ESX.GetPlayerData().dead and Config.EnablePlayerManagement and ESX.PlayerData.job and ESX.PlayerData.job.name == 'taxi' then
+	if not ESX.GetPlayerData().dead and not Config.EnablePlayerManagement and ESX.PlayerData.job and ESX.PlayerData.job.name == 'taxi' then
 		OpenMobileTaxiActionsMenu()
 	end
 end, false)
