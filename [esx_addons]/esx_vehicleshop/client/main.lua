@@ -21,6 +21,8 @@ function getVehicles()
 	end)
 end
 
+AddEventHandler("onResourceStart", getVehicles)
+
 function PlayerManagement()
 	if Config.EnablePlayerManagement then
 		if ESX.PlayerData.job.name == 'cardealer' then
@@ -228,18 +230,12 @@ function OpenShopMenu()
 							menu2.close()
 							menu.close()
 							DeleteDisplayVehicleInsideShop()
-
-							ESX.Game.SpawnVehicle(vehicleData.model, Config.Zones.ShopOutside.Pos, Config.Zones.ShopOutside.Heading, function(vehicle)
-								TaskWarpPedIntoVehicle(playerPed, vehicle, -1)
-								SetVehicleNumberPlateText(vehicle, generatedPlate)
-
-								FreezeEntityPosition(playerPed, false)
-								SetEntityVisible(playerPed, true)
-							end)
+							FreezeEntityPosition(playerPed, false)
+							SetEntityVisible(playerPed, true)
 						else
 							ESX.ShowNotification(_U('not_enough_money'))
 						end
-					end, vehicleData.model, generatedPlate)
+					end, vehicleData.model, generatedPlate, IsThisModelACar(vehicleData.model))
 				end
 			else
 				menu2.close()
@@ -668,7 +664,7 @@ AddEventHandler('esx_vehicleshop:hasEnteredMarker', function(zone)
 
 			if GetPedInVehicleSeat(vehicle, -1) == playerPed then
 				for i=1, #Vehicles, 1 do
-					if GetHashKey(Vehicles[i].model) == GetEntityModel(vehicle) then
+					if joaat(Vehicles[i].model) == GetEntityModel(vehicle) then
 						vehicleData = Vehicles[i]
 						break
 					end
@@ -706,7 +702,7 @@ AddEventHandler('esx_vehicleshop:hasExitedMarker', function(zone)
 	if not IsInShopMenu then
 		ESX.UI.Menu.CloseAll()
 	end
-
+	ESX.HideUI()
 	CurrentAction = nil
 end)
 
@@ -741,16 +737,18 @@ end
 
 -- Create Blips
 CreateThread(function()
-	local blip = AddBlipForCoord(Config.Zones.ShopEntering.Pos)
+	if Config.Blip.show then
+		local blip = AddBlipForCoord(Config.Zones.ShopEntering.Pos)
 
-	SetBlipSprite (blip, 326)
-	SetBlipDisplay(blip, 4)
-	SetBlipScale  (blip, 1.0)
-	SetBlipAsShortRange(blip, true)
+		SetBlipSprite (blip, Config.Blip.Sprite)
+		SetBlipDisplay(blip, Config.Blip.Display)
+		SetBlipScale  (blip, Config.Blip.Scale)
+		SetBlipAsShortRange(blip, true)
 
-	BeginTextCommandSetBlipName('STRING')
-	AddTextComponentSubstringPlayerName(_U('car_dealer'))
-	EndTextCommandSetBlipName(blip)
+		BeginTextCommandSetBlipName('STRING')
+		AddTextComponentSubstringPlayerName(_U('car_dealer'))
+		EndTextCommandSetBlipName(blip)
+	end
 end)
 
 -- Enter / Exit marker events & Draw Markers
@@ -799,7 +797,7 @@ CreateThread(function()
 		Wait(0)
 
 		if CurrentAction then
-			ESX.ShowHelpNotification(CurrentActionMsg)
+			ESX.TextUI(CurrentActionMsg)
 
 			if IsControlJustReleased(0, 38) then
 				if CurrentAction == 'shop_menu' then
@@ -837,7 +835,7 @@ CreateThread(function()
 				elseif CurrentAction == 'boss_actions_menu' then
 					OpenBossActionsMenu()
 				end
-
+				ESX.HideUI()
 				CurrentAction = nil
 			end
 		else

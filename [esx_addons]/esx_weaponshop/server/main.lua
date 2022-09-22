@@ -1,34 +1,9 @@
-local shopItems = {}
-
-MySQL.ready(function()
-
-	MySQL.query('SELECT * FROM weashops', function(result)
-		for i=1, #result, 1 do
-			if shopItems[result[i].zone] == nil then
-				shopItems[result[i].zone] = {}
-			end
-
-			table.insert(shopItems[result[i].zone], {
-				item  = result[i].item,
-				price = result[i].price,
-				label = ESX.GetWeaponLabel(result[i].item)
-			})
-		end
-
-		TriggerClientEvent('esx_weaponshop:sendShop', -1, shopItems)
-	end)
-
-end)
-
-ESX.RegisterServerCallback('esx_weaponshop:getShop', function(source, cb)
-	cb(shopItems)
-end)
 
 ESX.RegisterServerCallback('esx_weaponshop:buyLicense', function(source, cb)
 	local xPlayer = ESX.GetPlayerFromId(source)
 
 	if xPlayer.getMoney() >= Config.LicensePrice then
-		xPlayer.removeMoney(Config.LicensePrice)
+		xPlayer.removeMoney(Config.LicensePrice, "Weapon License")
 
 		TriggerEvent('esx_license:addLicense', source, 'weapon', function()
 			cb(true)
@@ -53,7 +28,7 @@ ESX.RegisterServerCallback('esx_weaponshop:buyWeapon', function(source, cb, weap
 		else
 			if zone == 'BlackWeashop' then
 				if xPlayer.getAccount('black_money').money >= price then
-					xPlayer.removeAccountMoney('black_money', price)
+					xPlayer.removeAccountMoney('black_money', price, "Black Weapons Deal")
 					xPlayer.addWeapon(weaponName, 42)
 	
 					cb(true)
@@ -63,7 +38,7 @@ ESX.RegisterServerCallback('esx_weaponshop:buyWeapon', function(source, cb, weap
 				end
 			else
 				if xPlayer.getMoney() >= price then
-					xPlayer.removeMoney(price)
+					xPlayer.removeMoney(price, "Weapons Deal")
 					xPlayer.addWeapon(weaponName, 42)
 	
 					cb(true)
@@ -77,13 +52,16 @@ ESX.RegisterServerCallback('esx_weaponshop:buyWeapon', function(source, cb, weap
 end)
 
 function GetPrice(weaponName, zone)
-	local price = MySQL.scalar.await('SELECT price FROM weashops WHERE zone = @zone AND item = @item', {
-		['@zone'] = zone,
-		['@item'] = weaponName
-	})
+	local weapon = nil
+	for k,v in pairs(Config.Zones[zone].Items) do
+		if v.name == weaponName then
+			weapon  = v
+			break
+		end
+	end
 
-	if price then
-		return price
+	if weapon then
+		return weapon.price
 	else
 		return 0
 	end

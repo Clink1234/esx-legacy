@@ -13,7 +13,7 @@ function OpenVehicleSpawnerMenu(type, hospital, part, partNum)
 	}}, function(data, menu)
 		if data.current.action == 'buy_vehicle' then
 			local shopElements = {}
-			local authorizedVehicles = Config.AuthorizedVehicles[type][ESX.PlayerData.job.grade_name]
+			local authorizedVehicles = Config.AuthorizedVehicles[type][ESX.PlayerData.job.grade_name] 	
 			local shopCoords = Config.Hospitals[hospital][part][partNum].InsideShop
 
 			if #authorizedVehicles > 0 then
@@ -115,7 +115,7 @@ function StoreNearbyVehicle(playerCoords)
 		for i = 1, #vehicles do
 			local vehicle = vehicles[i]
 			
-			-- Make sure the vehicle we're saving is empty, or else it wont be deleted
+			-- Make sure the vehicle we're saving is empty, or else it won't be deleted
 			if GetVehicleNumberOfPassengers(vehicle) == 0 and IsVehicleSeatFree(vehicle, -1) then
 				local plate = ESX.Math.Trim(GetVehicleNumberPlateText(vehicle))
 				plates[#plates + 1] = plate
@@ -300,7 +300,7 @@ function DeleteSpawnedVehicles()
 end
 
 function WaitForVehicleToLoad(modelHash)
-	modelHash = (type(modelHash) == 'number' and modelHash or GetHashKey(modelHash))
+	modelHash = (type(modelHash) == 'number' and modelHash or joaat(modelHash))
 
 	if not HasModelLoaded(modelHash) then
 		RequestModel(modelHash)

@@ -50,7 +50,7 @@ CreateThread(function()
 										end
 									end
 								else
-									xPlayer.addMoney(v.price)
+									xPlayer.addMoney(v.price, "Job Payment")
 								end
 							end
 						end
@@ -72,8 +72,7 @@ CreateThread(function()
 	end
 end)
 
-RegisterServerEvent('esx_jobs:startWork')
-AddEventHandler('esx_jobs:startWork', function(zoneIndex, zoneKey)
+RegisterServerEvent('esx_jobs:startWork', function(zoneIndex, zoneKey)
 	if not playersWorking[source] then
 		local xPlayer = ESX.GetPlayerFromId(source)
 
@@ -96,22 +95,20 @@ AddEventHandler('esx_jobs:startWork', function(zoneIndex, zoneKey)
 	end
 end)
 
-RegisterServerEvent('esx_jobs:stopWork')
-AddEventHandler('esx_jobs:stopWork', function()
+RegisterServerEvent('esx_jobs:stopWork', function()
 	if playersWorking[source] then
 		playersWorking[source] = nil
 	end
 end)
 
-RegisterNetEvent('esx_jobs:caution')
-AddEventHandler('esx_jobs:caution', function(cautionType, cautionAmount, spawnPoint, vehicle)
+RegisterNetEvent('esx_jobs:caution', function(cautionType, cautionAmount, spawnPoint, vehicle)
 	local xPlayer = ESX.GetPlayerFromId(source)
 
 	if cautionType == 'take' then
 		if cautionAmount <= Config.MaxCaution and cautionAmount >= 0 then
 			TriggerEvent('esx_addonaccount:getAccount', 'caution', xPlayer.identifier, function(account)
 				if xPlayer.getAccount('bank').money >= cautionAmount then
-					xPlayer.removeAccountMoney('bank', cautionAmount)
+					xPlayer.removeAccountMoney('bank', cautionAmount, "Caution Fine")
 					account.addMoney(cautionAmount)
 					xPlayer.showNotification(_U('bank_deposit_taken', ESX.Math.GroupDigits(cautionAmount)))
 					TriggerClientEvent('esx_jobs:spawnJobVehicle', xPlayer.source, spawnPoint, vehicle)
@@ -126,7 +123,7 @@ AddEventHandler('esx_jobs:caution', function(cautionType, cautionAmount, spawnPo
 				local caution = account.money
 				local toGive = ESX.Math.Round(caution * cautionAmount)
 	
-				xPlayer.addAccountMoney('bank', toGive)
+				xPlayer.addAccountMoney('bank', toGive, "Caution Return")
 				account.removeMoney(toGive)
 				TriggerClientEvent('esx:showNotification', source, _U('bank_deposit_returned', ESX.Math.GroupDigits(toGive)))
 			end)

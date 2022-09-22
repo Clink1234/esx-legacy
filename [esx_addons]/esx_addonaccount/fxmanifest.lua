@@ -2,9 +2,10 @@ fx_version 'adamant'
 
 game 'gta5'
 
+author 'ESX-Framework'
 description 'ESX Addon Account'
-
-version '1.6.0'
+lua54 'yes'
+version '1.8.5'
 
 server_scripts {
 	'@es_extended/imports.lua',
