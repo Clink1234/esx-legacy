@@ -675,4 +675,3 @@ end)
 AddEventHandler('txAdmin:events:serverShuttingDown', function()
   Core.SavePlayers()
 end)
-
