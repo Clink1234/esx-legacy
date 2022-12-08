@@ -1,398 +1,444 @@
-local LastGarage, LastPart, LastParking, thisGarage = nil, nil, nil, nil
+local LastMarker, LastPart, thisGarage, thisPound = nil, nil, nil, nil
+local next = next
+local nearMarker, menuIsShowed = false, false
+local vehiclesList, vehiclesImpoundedList = {}, {}
 
-AddEventHandler('instance:loaded', function()
-	TriggerEvent('instance:registerType', 'garage')
+RegisterNetEvent('esx_garage:closemenu')
+AddEventHandler('esx_garage:closemenu', function()
+    menuIsShowed = false
+    vehiclesList, vehiclesImpoundedList = {}, {}
+
+    SetNuiFocus(false)
+    SendNUIMessage({
+        hideAll = true
+    })
+
+    if not menuIsShowed and thisGarage then
+        ESX.TextUI(TranslateCap('access_parking'))
+    end
+    if not menuIsShowed and thisPound then
+        ESX.TextUI(TranslateCap('access_Impound'))
+    end
 end)
 
-RegisterNetEvent('instance:onCreate')
-AddEventHandler('instance:onCreate', function(instance)
-	if instance.type == 'garage' then
-		TriggerEvent('instance:enter', instance)
-	end
+RegisterNUICallback('escape', function(data, cb)
+    TriggerEvent('esx_garage:closemenu')
+    cb('ok')
 end)
 
-AddEventHandler('esx_garage:hasEnteredMarker', function(name, part, parking)
-	if part == 'ExteriorEntryPoint' then
-		local playerPed = PlayerPedId()
-		local coords    = GetEntityCoords(playerPed)
-		local garage    = Config.Garages[name]
-		thisGarage 		= garage
-		
-		for i=1, #Config.Garages, 1 do
-			if Config.Garages[i].name ~= name then
-				Config.Garages[i].disabled = true
-			end
-		end
+RegisterNUICallback('spawnVehicle', function(data, cb)
+    local spawnCoords = vector3(data.spawnPoint.x, data.spawnPoint.y, data.spawnPoint.z)
+    if thisGarage then
 
-		if IsPedInAnyVehicle(playerPed,  false) then
-			local vehicle       = GetVehiclePedIsIn(playerPed,  false)
-			local maxHealth     = GetEntityMaxHealth(vehicle)
-			local health        = GetEntityHealth(vehicle)
-			local healthPercent = (health / maxHealth) * 100
+        if ESX.Game.IsSpawnPointClear(spawnCoords, 2.5) then
+            thisGarage = nil
+            TriggerServerEvent('esx_garage:updateOwnedVehicle', false, nil, nil, data, spawnCoords)
+            TriggerEvent('esx_garage:closemenu')
 
-			if healthPercent < Config.MinimumHealthPercent then
-				ESX.ShowNotification(_U('veh_health'))
-			else
-				if GetPedInVehicleSeat(vehicle,  -1) == playerPed then
+            ESX.ShowNotification(TranslateCap('veh_released'))
 
-					local vehicleProps = ESX.Game.GetVehicleProperties(vehicle)
+        else
+            ESX.ShowNotification(TranslateCap('veh_block'), 'error')
+        end
 
-					local spawnCoords  = {
-						x = garage.InteriorSpawnPoint.Pos.x,
-						y = garage.InteriorSpawnPoint.Pos.y,
-						z = garage.InteriorSpawnPoint.Pos.z + Config.ZDiff
-					}
+    elseif thisPound then
 
-					ESX.Game.DeleteVehicle(vehicle)
+        ESX.TriggerServerCallback('esx_garage:checkMoney', function(hasMoney)
+            if hasMoney then
+                if ESX.Game.IsSpawnPointClear(spawnCoords, 2.5) then
+                    TriggerServerEvent('esx_garage:payPound', data.exitVehicleCost)
+                    thisPound = nil
 
-					ESX.Game.Teleport(playerPed, spawnCoords, function()
+                    TriggerServerEvent('esx_garage:updateOwnedVehicle', false, nil, nil, data, spawnCoords)
+                    TriggerEvent('esx_garage:closemenu')
 
-						TriggerEvent('instance:create', 'garage')
+                else
+                    ESX.ShowNotification(TranslateCap('veh_block'), 'error')
+                end
+            else
+                ESX.ShowNotification(TranslateCap('missing_money'))
+            end
+        end, data.exitVehicleCost)
 
-						ESX.Game.SpawnLocalVehicle(vehicleProps.model, spawnCoords, garage.InteriorSpawnPoint.Heading, function(vehicle)
-							TaskWarpPedIntoVehicle(playerPed,  vehicle,  -1)
-							ESX.Game.SetVehicleProperties(vehicle, vehicleProps)
-							SetVehicleEngineOn(vehicle, (not GetIsVehicleEngineRunning(vehicle)), true, true)
-						end)
+    end
 
-						ESX.TriggerServerCallback('esx_vehicleshop:getVehiclesInGarage', function(vehicles)
-
-							for i=1, #garage.Parkings, 1 do
-								for j=1, #vehicles, 1 do
-
-									if i == vehicles[j].zone then
-										local function spawn(j)
-
-											local vehicle = GetClosestVehicle(garage.Parkings[i].Pos.x,  garage.Parkings[i].Pos.y,  garage.Parkings[i].Pos.z,  2.0,  0,  71)
-
-											if DoesEntityExist(vehicle) then
-												ESX.Game.DeleteVehicle(vehicle)
-											end
-
-											ESX.Game.SpawnLocalVehicle(vehicles[j].vehicle.model, {
-												x = garage.Parkings[i].Pos.x,
-												y = garage.Parkings[i].Pos.y,
-												z = garage.Parkings[i].Pos.z + Config.ZDiff
-											}, garage.Parkings[i].Heading, function(vehicle)
-												ESX.Game.SetVehicleProperties(vehicle, vehicles[j].vehicle)
-											end)
-										end
-
-										spawn(j)
-									end
-								end
-							end
-						end, name)
-					end)
-				else
-					ESX.Game.Teleport(playerPed, {
-						x = garage.InteriorSpawnPoint.Pos.x,
-						y = garage.InteriorSpawnPoint.Pos.y,
-						z = garage.InteriorSpawnPoint.Pos.z + Config.ZDiff
-					}, function()
-
-						TriggerEvent('instance:create', 'garage')
-
-						ESX.TriggerServerCallback('esx_vehicleshop:getVehiclesInGarage', function(vehicles)
-
-							for i=1, #garage.Parkings, 1 do
-								for j=1, #vehicles, 1 do
-
-									if i == vehicles[j].zone then
-										local function spawn(j)
-
-											local vehicle = GetClosestVehicle(garage.Parkings[i].Pos.x,  garage.Parkings[i].Pos.garage.Parkings[i].Pos.y,  garage.Parkings[i].Pos.z,  2.0,  0,  71)
-
-											if DoesEntityExist(vehicle) then
-												ESX.Game.DeleteVehicle(vehicle)
-											end
-
-											ESX.Game.SpawnLocalVehicle(vehicles[j].vehicle.model, {
-												x = garage.Parkings[i].Pos.x,
-												y = garage.Parkings[i].Pos.y,
-												z = garage.Parkings[i].Pos.z + Config.ZDiff
-											}, garage.Parkings[i].Heading, function(vehicle)
-												ESX.Game.SetVehicleProperties(vehicle, vehicles[j].vehicle)
-											end)
-
-										end
-
-										spawn(j)
-									end
-								end
-							end
-						end, name)
-					end)
-				end
-			end
-		else
-			ESX.Game.Teleport(playerPed, {
-				x = garage.InteriorSpawnPoint.Pos.x,
-				y = garage.InteriorSpawnPoint.Pos.y,
-				z = garage.InteriorSpawnPoint.Pos.z + Config.ZDiff
-			}, function()
-
-				TriggerEvent('instance:create', 'garage')
-
-				ESX.TriggerServerCallback('esx_vehicleshop:getVehiclesInGarage', function(vehicles)
-
-					for i=1, #garage.Parkings, 1 do
-						for j=1, #vehicles, 1 do
-
-							if i == vehicles[j].zone then
-								local function spawn(j)
-
-									local vehicle = GetClosestVehicle(garage.Parkings[i].Pos.x,  garage.Parkings[i].Pos.y,  garage.Parkings[i].Pos.z,  2.0,  0,  71)
-
-									if DoesEntityExist(vehicle) then
-										ESX.Game.DeleteVehicle(vehicle)
-									end
-
-									ESX.Game.SpawnLocalVehicle(vehicles[j].vehicle.model, {
-										x = garage.Parkings[i].Pos.x,
-										y = garage.Parkings[i].Pos.y,
-										z = garage.Parkings[i].Pos.z + Config.ZDiff
-									}, garage.Parkings[i].Heading, function(vehicle)
-										ESX.Game.SetVehicleProperties(vehicle, vehicles[j].vehicle)
-									end)
-								end
-
-								spawn(j)
-							end
-						end
-					end
-				end, name)
-			end)
-		end
-	end
-
-	if part == 'InteriorExitPoint' then
-		local playerPed = PlayerPedId()
-		local coords    = GetEntityCoords(playerPed)
-		local garage = thisGarage
-
-		if IsPedInAnyVehicle(playerPed,  false) then
-
-			local vehicle      = GetVehiclePedIsIn(playerPed,  false)
-			local vehicleProps = ESX.Game.GetVehicleProperties(vehicle)
-			
-			local spawnCoords  = {
-				x = garage.ExteriorSpawnPoint.Pos.x,
-				y = garage.ExteriorSpawnPoint.Pos.y,
-				z = garage.ExteriorSpawnPoint.Pos.z
-			}
-
-			ESX.Game.DeleteVehicle(vehicle)
-
-			ESX.Game.Teleport(playerPed, spawnCoords, function()
-
-				TriggerEvent('instance:close')
-
-				ESX.Game.SpawnVehicle(vehicleProps.model, spawnCoords, garage.ExteriorSpawnPoint.Heading, function(vehicle)
-					TaskWarpPedIntoVehicle(playerPed, vehicle, -1)
-					ESX.Game.SetVehicleProperties(vehicle, vehicleProps)
-					SetVehicleEngineOn(vehicle, (not GetIsVehicleEngineRunning(vehicle)), true, true)
-				end)
-			end)
-
-		else
-
-			ESX.Game.Teleport(playerPed,{
-						x = garage.ExteriorSpawnPoint.Pos.x,
-						y = garage.ExteriorSpawnPoint.Pos.y,
-						z = garage.ExteriorSpawnPoint.Pos.z
-					}, function()
-				TriggerEvent('instance:close')
-			end)
-		end
-
-		for i=1, #garage.Parkings, 1 do
-
-			local vehicle = GetClosestVehicle(garage.Parkings[i].Pos.x,  garage.Parkings[i].Pos.y,  garage.Parkings[i].Pos.z,  2.0,  0,  71)
-
-			if DoesEntityExist(vehicle) then
-				ESX.Game.DeleteVehicle(vehicle)
-			end
-
-		end
-		
-		for i=1, #Config.Garages, 1 do
-			if Config.Garages[i].name ~= name then
-				Config.Garages[i].disabled = false
-			end
-		end
-		
-		thisGarage = nil
-	end
-
-	if part == 'Parking' then
-
-		local playerPed = PlayerPedId()
-		local garage = thisGarage
-		local parkingPos = garage.Parkings[parking].Pos
-		local vehicle = GetVehiclePedIsIn(playerPed, false)
-
-		if vehicle > 0 and not IsAnyVehicleNearPoint(parkingPos.x,  parkingPos.y,  parkingPos.z,  1.0)  then
-
-			local vehicleProps  = ESX.Game.GetVehicleProperties(vehicle)
-
-			TriggerServerEvent('esx_garage:setParking', name, parking, vehicleProps)
-
-			if Config.EnableOwnedVehicles then
-				TriggerServerEvent('esx_garage:updateOwnedVehicle', vehicleProps)
-			end
-		end
-	end
+    cb('ok')
 end)
 
-AddEventHandler('esx_property:hasExitedMarker', function(name, part, parking)
+RegisterNUICallback('impound', function(data, cb)
+    local poundCoords = {
+        x = data.poundSpawnPoint.x,
+        y = data.poundSpawnPoint.y
+    }
 
-	if part == 'Parking' then
+    TriggerServerEvent('esx_garage:setImpound', data.poundName, data.vehicleProps)
+    TriggerEvent('esx_garage:closemenu')
 
-		local playerPed = PlayerPedId()
-		local garage = thisGarage
-		local parkingPos = garage.Parkings[parking].Pos
+    SetNewWaypoint(poundCoords.x, poundCoords.y)
 
-		if IsPedInAnyVehicle(playerPed, false) and not IsAnyVehicleNearPoint(parkingPos.x, parkingPos.y, parkingPos.z, 1.0) then
-			TriggerServerEvent('esx_garage:setParking', name, parking, false)
-		end
-	end
+    cb('ok')
 end)
 
 -- Create Blips
 CreateThread(function()
-		
-	for k,v in pairs(Config.Garages) do
+    for k, v in pairs(Config.Garages) do
+        local blip = AddBlipForCoord(v.EntryPoint.x, v.EntryPoint.y, v.EntryPoint.z)
 
-		if v.IsClosed then
+        SetBlipSprite(blip, v.Sprite)
+        SetBlipDisplay(blip, 4)
+        SetBlipScale(blip, v.Scale)
+        SetBlipColour(blip, v.Colour)
+        SetBlipAsShortRange(blip, true)
 
-			local blip = AddBlipForCoord(v.ExteriorEntryPoint.Pos.x, v.ExteriorEntryPoint.Pos.y, v.ExteriorEntryPoint.Pos.z)
+        BeginTextCommandSetBlipName("STRING")
+        AddTextComponentSubstringPlayerName(TranslateCap('parking_blip_name'))
+        EndTextCommandSetBlipName(blip)
+    end
 
-			SetBlipSprite (blip, 357)
-			SetBlipDisplay(blip, 4)
-			SetBlipScale  (blip, 1.2)
-			SetBlipColour (blip, 3)
-			SetBlipAsShortRange(blip, true)
+    for k, v in pairs(Config.Impounds) do
+        local blip = AddBlipForCoord(v.GetOutPoint.x, v.GetOutPoint.y, v.GetOutPoint.z)
 
-			BeginTextCommandSetBlipName("STRING")
-			AddTextComponentSubstringPlayerName("Garage")
-			EndTextCommandSetBlipName(blip)
+        SetBlipSprite(blip, v.Sprite)
+        SetBlipDisplay(blip, 4)
+        SetBlipScale(blip, v.Scale)
+        SetBlipColour(blip, v.Colour)
+        SetBlipAsShortRange(blip, true)
 
-		end
-
-	end
-
+        BeginTextCommandSetBlipName("STRING")
+        AddTextComponentSubstringPlayerName(TranslateCap('Impound_blip_name'))
+        EndTextCommandSetBlipName(blip)
+    end
 end)
 
-local nearMarker = false
+AddEventHandler('esx_garage:hasEnteredMarker', function(name, part)
+    if part == 'EntryPoint' then
+        local isInVehicle = IsPedInAnyVehicle(ESX.PlayerData.ped, false)
+        local garage = Config.Garages[name]
+        thisGarage = garage
+
+        if isInVehicle then
+            ESX.TextUI(TranslateCap('park_veh'))
+        else
+            ESX.TextUI(TranslateCap('access_parking'))
+        end
+    end
+
+    if part == 'GetOutPoint' then
+        local pound = Config.Impounds[name]
+        thisPound = pound
+
+        ESX.TextUI(TranslateCap('access_Impound'))
+    end
+end)
+
+AddEventHandler('esx_garage:hasExitedMarker', function()
+    thisGarage = nil
+    thisPound = nil
+    ESX.HideUI()
+    TriggerEvent('esx_garage:closemenu')
+end)
+
 -- Display markers
 CreateThread(function()
-	while true do
-		local sleep = 500
-		
-		
-		local playerPed = PlayerPedId()
-		local coords    = GetEntityCoords(playerPed)
-		local inVehicle = IsPedInAnyVehicle(playerPed, false)
-		
-		for k,v in pairs(Config.Garages) do
+    while true do
+        local sleep = 500
 
-			if v.IsClosed then
+        local playerPed = ESX.PlayerData.ped
+        local coords = GetEntityCoords(playerPed)
+        local inVehicle = IsPedInAnyVehicle(playerPed, false)
 
-				if(not v.disabled and #(coords - vector3(v.ExteriorEntryPoint.Pos.x, v.ExteriorEntryPoint.Pos.y, v.ExteriorEntryPoint.Pos.z)) < Config.DrawDistance) then
-					DrawMarker(Config.MarkerType, v.ExteriorEntryPoint.Pos.x, v.ExteriorEntryPoint.Pos.y, v.ExteriorEntryPoint.Pos.z, 0.0, 0.0, 0.0, 0, 0.0, 0.0, Config.MarkerSize.x, Config.MarkerSize.y, Config.MarkerSize.z, Config.MarkerColor.r, Config.MarkerColor.g, Config.MarkerColor.b, 100, false, true, 2, false, false, false, false)
-					sleep = 0
-					break
-				end
-				
-				if thisGarage and (not v.disabled and #(coords - vector3(v.InteriorExitPoint.Pos.x, v.InteriorExitPoint.Pos.y, v.InteriorExitPoint.Pos.z)) < Config.DrawDistance) then
-					DrawMarker(Config.MarkerType, v.InteriorExitPoint.Pos.x, v.InteriorExitPoint.Pos.y, v.InteriorExitPoint.Pos.z, 0.0, 0.0, 0.0, 0, 0.0, 0.0, Config.MarkerSize.x, Config.MarkerSize.y, Config.MarkerSize.z, Config.MarkerColor.r, Config.MarkerColor.g, Config.MarkerColor.b, 100, false, true, 2, false, false, false, false)
-					sleep = 0
-				end
+        -- parking
+        for k, v in pairs(Config.Garages) do
+            if (#(coords - vector3(v.EntryPoint.x, v.EntryPoint.y, v.EntryPoint.z)) < Config.DrawDistance) then
+                DrawMarker(Config.Markers.EntryPoint.Type, v.EntryPoint.x, v.EntryPoint.y, v.EntryPoint.z, 0.0, 0.0,
+                    0.0, 0, 0.0, 0.0, Config.Markers.EntryPoint.Size.x, Config.Markers.EntryPoint.Size.y,
+                    Config.Markers.EntryPoint.Size.z, Config.Markers.EntryPoint.Color.r,
+                    Config.Markers.EntryPoint.Color.g, Config.Markers.EntryPoint.Color.b, 100, false, true, 2, false,
+                    false, false, false)
+                sleep = 0
+                break
+            end
+        end
 
-			end
+        -- Impound
+        for k, v in pairs(Config.Impounds) do
+            if (#(coords - vector3(v.GetOutPoint.x, v.GetOutPoint.y, v.GetOutPoint.z)) < Config.DrawDistance) then
+                DrawMarker(Config.Markers.GetOutPoint.Type, v.GetOutPoint.x, v.GetOutPoint.y, v.GetOutPoint.z, 0.0, 0.0,
+                    0.0, 0, 0.0, 0.0, Config.Markers.GetOutPoint.Size.x, Config.Markers.GetOutPoint.Size.y,
+                    Config.Markers.GetOutPoint.Size.z, Config.Markers.GetOutPoint.Color.r,
+                    Config.Markers.GetOutPoint.Color.g, Config.Markers.GetOutPoint.Color.b, 100, false, true, 2, false,
+                    false, false, false)
+                sleep = 0
+                break
+            end
+        end
 
-			if inVehicle then
+        if sleep == 0 then
+            nearMarker = true
+        else
+            nearMarker = false
+        end
 
-				for i=1, #v.Parkings, 1 do
-
-					local parking = vector3(v.Parkings[i].Pos.x, v.Parkings[i].Pos.y, v.Parkings[i].Pos.z)
-
-					if(not v.disabled and #(coords - parking) < Config.DrawDistance) then
-						DrawMarker(Config.MarkerType, parking.x, parking.y, parking.z, 0.0, 0.0, 0.0, 0, 0.0, 0.0, Config.ParkingMarkerSize.x, Config.ParkingMarkerSize.y, Config.ParkingMarkerSize.z, Config.ParkingMarkerColor.r, Config.ParkingMarkerColor.g, Config.ParkingMarkerColor.b, 100, false, true, 2, false, false, false, false)
-						sleep = 0
-					end
-
-				end
-
-			end
-
-		end
-		if sleep == 0 then nearMarker = true else nearMarker = false end
-		Wait(sleep)
-	end
+        Wait(sleep)
+    end
 end)
 
--- Enter / Exit marker events
+-- Enter / Exit marker events (parking)
 CreateThread(function()
-	while true do
-		if nearMarker then
-			local playerPed      = PlayerPedId()
-			local coords         = GetEntityCoords(playerPed)
-			local isInMarker     = false
-			local currentGarage  = nil
-			local currentPart    = nil
-			local currentParking = nil
-			
-			for k,v in pairs(Config.Garages) do
-								if v.IsClosed then
+    while true do
+        if nearMarker then
+            local playerPed = ESX.PlayerData.ped
+            local coords = GetEntityCoords(playerPed)
+            local isInMarker = false
+            local currentMarker = nil
+            local currentPart = nil
 
-									if (not v.disabled and #(coords - vector3(v.ExteriorEntryPoint.Pos.x, v.ExteriorEntryPoint.Pos.y, v.ExteriorEntryPoint.Pos.z)) < Config.MarkerSize.x) then
-										isInMarker    = true
-										currentGarage = k
-										currentPart   = 'ExteriorEntryPoint'
-										break
-									end
+            for k, v in pairs(Config.Garages) do
+                if (#(coords - vector3(v.EntryPoint.x, v.EntryPoint.y, v.EntryPoint.z)) <
+                    Config.Markers.EntryPoint.Size.x) then
+                    isInMarker = true
+                    currentMarker = k
+                    currentPart = 'EntryPoint'
+                    local isInVehicle = IsPedInAnyVehicle(playerPed, false)
 
-									if (not v.disabled and #(coords - vector3(v.InteriorExitPoint.Pos.x, v.InteriorExitPoint.Pos.y, v.InteriorExitPoint.Pos.z)) < Config.MarkerSize.x) then
-										isInMarker    = true
-										currentGarage = k
-										currentPart   = 'InteriorExitPoint'
-									end
-							
-									for i=1, #v.Parkings, 1 do
-										local parking = v.Parkings[i]
+                    if not isInVehicle then
+                        if IsControlJustReleased(0, 38) and not menuIsShowed then
+                            ESX.TriggerServerCallback('esx_garage:getVehiclesInParking', function(vehicles)
+                                if next(vehicles) then
+                                    menuIsShowed = true
 
-										if (not v.disabled and #(coords - vector3(parking.Pos.x, parking.Pos.y, parking.Pos.z)) < Config.ParkingMarkerSize.x) then
-											isInMarker     = true
-											currentGarage  = k
-											currentPart    = 'Parking'
-											currentParking = i
-										end
-									end
-								end
-			end
+                                    for i = 1, #vehicles, 1 do
+                                        table.insert(vehiclesList, {
+                                            model = GetDisplayNameFromVehicleModel(vehicles[i].vehicle.model),
+                                            plate = vehicles[i].plate,
+                                            props = vehicles[i].vehicle
+                                        })
 
-			if isInMarker and not HasAlreadyEnteredMarker or (isInMarker and (LastGarage ~= currentGarage or LastPart ~= currentPart or LastParking ~= currentParking) ) then
-				
-				if LastGarage ~= currentGarage or LastPart ~= currentPart or LastParking ~= currentParking then
-					TriggerEvent('esx_property:hasExitedMarker', LastGarage, LastPart, LastParking)
-				end
+                                    end
 
-				HasAlreadyEnteredMarker = true
-				LastGarage              = currentGarage
-				LastPart                = currentPart
-				LastParking             = currentParking
-				
-				TriggerEvent('esx_garage:hasEnteredMarker', currentGarage, currentPart, currentParking)
-			end
+                                    local spawnPoint = {
+                                        x = v.SpawnPoint.x,
+                                        y = v.SpawnPoint.y,
+                                        z = v.SpawnPoint.z,
+                                        heading = v.SpawnPoint.heading
+                                    }
 
-			if not isInMarker and HasAlreadyEnteredMarker then
-				HasAlreadyEnteredMarker = false
+                                    ESX.TriggerServerCallback('esx_garage:getVehiclesImpounded', function(vehicles)
+                                        if next(vehicles) then
 
-				TriggerEvent('esx_property:hasExitedMarker', LastGarage, LastPart, LastParking)
-			end
-			Wait(0)
-		else Wait(500) end
-	end
+                                            for i = 1, #vehicles, 1 do
+                                                table.insert(vehiclesImpoundedList, {
+                                                    model = GetDisplayNameFromVehicleModel(vehicles[i].vehicle.model),
+                                                    plate = vehicles[i].plate,
+                                                    props = vehicles[i].vehicle
+                                                })
+                                            end
+
+                                            local poundSpawnPoint = {
+                                                x = Config.Impounds[v.ImpoundedName].GetOutPoint.x,
+                                                y = Config.Impounds[v.ImpoundedName].GetOutPoint.y
+                                            }
+
+                                            SendNUIMessage({
+                                                showMenu = true,
+                                                type = 'garage',
+                                                vehiclesList = {json.encode(vehiclesList)},
+                                                vehiclesImpoundedList = {json.encode(vehiclesImpoundedList)},
+                                                poundName = v.ImpoundedName,
+                                                poundSpawnPoint = poundSpawnPoint,
+                                                spawnPoint = spawnPoint,
+                                                locales = {
+                                                    action = TranslateCap('veh_exit'),
+                                                    veh_model = TranslateCap('veh_model'),
+                                                    veh_plate = TranslateCap('veh_plate'),
+                                                    veh_condition = TranslateCap('veh_condition'),
+                                                    veh_action = TranslateCap('veh_action'),
+                                                    impound_action = TranslateCap('impound_action')
+                                                }
+                                            })
+                                        else
+                                            SendNUIMessage({
+                                                showMenu = true,
+                                                type = 'garage',
+                                                vehiclesList = {json.encode(vehiclesList)},
+                                                spawnPoint = spawnPoint,
+                                                locales = {
+                                                    action = TranslateCap('veh_exit'),
+                                                    veh_model = TranslateCap('veh_model'),
+                                                    veh_plate = TranslateCap('veh_plate'),
+                                                    veh_condition = TranslateCap('veh_condition'),
+                                                    veh_action = TranslateCap('veh_action'),
+                                                    no_veh_impounded = TranslateCap('no_veh_impounded')
+                                                }
+                                            })
+                                        end
+                                    end)
+
+                                    SetNuiFocus(true, true)
+
+                                    if menuIsShowed then
+                                        ESX.HideUI()
+                                    end
+                                else
+                                    menuIsShowed = true
+
+                                    ESX.TriggerServerCallback('esx_garage:getVehiclesImpounded', function(vehicles)
+                                        if next(vehicles) then
+
+                                            for i = 1, #vehicles, 1 do
+                                                table.insert(vehiclesImpoundedList, {
+                                                    model = GetDisplayNameFromVehicleModel(vehicles[i].vehicle.model),
+                                                    plate = vehicles[i].plate,
+                                                    props = vehicles[i].vehicle
+                                                })
+                                            end
+
+                                            local poundSpawnPoint = {
+                                                x = Config.Impounds[v.ImpoundedName].GetOutPoint.x,
+                                                y = Config.Impounds[v.ImpoundedName].GetOutPoint.y
+                                            }
+
+                                            SendNUIMessage({
+                                                showMenu = true,
+                                                type = 'garage',
+                                                vehiclesImpoundedList = {json.encode(vehiclesImpoundedList)},
+                                                poundName = v.ImpoundedName,
+                                                poundSpawnPoint = poundSpawnPoint,
+                                                locales = {
+                                                    action = TranslateCap('veh_exit'),
+                                                    veh_model = TranslateCap('veh_model'),
+                                                    veh_plate = TranslateCap('veh_plate'),
+                                                    veh_condition = TranslateCap('veh_condition'),
+                                                    veh_action = TranslateCap('veh_action'),
+                                                    no_veh_parking = TranslateCap('no_veh_parking'),
+                                                    no_veh_impounded = TranslateCap('no_veh_impounded'),
+                                                    impound_action = TranslateCap('impound_action')
+                                                }
+                                            })
+                                        else
+                                            SendNUIMessage({
+                                                showMenu = true,
+                                                type = 'garage',
+                                                locales = {
+                                                    action = TranslateCap('veh_exit'),
+                                                    veh_model = TranslateCap('veh_model'),
+                                                    veh_plate = TranslateCap('veh_plate'),
+                                                    veh_condition = TranslateCap('veh_condition'),
+                                                    veh_action = TranslateCap('veh_action'),
+                                                    no_veh_parking = TranslateCap('no_veh_parking')
+                                                }
+                                            })
+                                        end
+                                    end)
+
+                                    SetNuiFocus(true, true)
+
+                                    if menuIsShowed then
+                                        ESX.HideUI()
+                                    end
+                                end
+                            end, currentMarker)
+                        end
+                    end
+
+                    if isInVehicle then
+                        if IsControlJustReleased(0, 38) then
+                            local vehicle = GetVehiclePedIsIn(playerPed, false)
+                            local vehicleProps = ESX.Game.GetVehicleProperties(vehicle)
+                            ESX.TriggerServerCallback('esx_garage:checkVehicleOwner', function(owner)
+                                if owner then
+                                    ESX.Game.DeleteVehicle(vehicle)
+                                    TriggerServerEvent('esx_garage:updateOwnedVehicle', true, currentMarker, nil,
+                                        {vehicleProps = vehicleProps})
+                                else
+                                    ESX.ShowNotification(TranslateCap('not_owning_veh'), 'error')
+                                end
+                            end, vehicleProps.plate)
+                        end
+                    end
+                    break
+                end
+            end
+
+            for k, v in pairs(Config.Impounds) do
+
+                if (#(coords - vector3(v.GetOutPoint.x, v.GetOutPoint.y, v.GetOutPoint.z)) < 2.0) then
+                    isInMarker = true
+                    currentMarker = k
+                    currentPart = 'GetOutPoint'
+
+                    if IsControlJustReleased(0, 38) and not menuIsShowed then
+                        ESX.TriggerServerCallback('esx_garage:getVehiclesInPound', function(vehicles)
+                            if next(vehicles) then
+                                menuIsShowed = true
+
+                                for i = 1, #vehicles, 1 do
+                                    table.insert(vehiclesList, {
+                                        model = GetDisplayNameFromVehicleModel(vehicles[i].vehicle.model),
+                                        plate = vehicles[i].plate,
+                                        props = vehicles[i].vehicle
+                                    })
+                                end
+
+                                local spawnPoint = {
+                                    x = v.SpawnPoint.x,
+                                    y = v.SpawnPoint.y,
+                                    z = v.SpawnPoint.z,
+                                    heading = v.SpawnPoint.heading
+                                }
+
+                                SendNUIMessage({
+                                    showMenu = true,
+                                    type = 'impound',
+                                    vehiclesList = {json.encode(vehiclesList)},
+                                    spawnPoint = spawnPoint,
+                                    poundCost = v.Cost,
+                                    locales = {
+                                        action = TranslateCap('pay_impound'),
+                                        veh_model = TranslateCap('veh_model'),
+                                        veh_plate = TranslateCap('veh_plate'),
+                                        veh_condition = TranslateCap('veh_condition'),
+                                        veh_action = TranslateCap('veh_action')
+                                    }
+                                })
+
+                                SetNuiFocus(true, true)
+
+                                if menuIsShowed then
+                                    ESX.HideUI()
+                                end
+                            else
+                                ESX.ShowNotification(TranslateCap('no_veh_Impound'))
+                            end
+                        end, currentMarker)
+                    end
+                    break
+                end
+            end
+
+            if isInMarker and not HasAlreadyEnteredMarker or
+                (isInMarker and (LastMarker ~= currentMarker or LastPart ~= currentPart)) then
+
+                if LastMarker ~= currentMarker or LastPart ~= currentPart then
+                    TriggerEvent('esx_garage:hasExitedMarker')
+                end
+
+                HasAlreadyEnteredMarker = true
+                LastMarker = currentMarker
+                LastPart = currentPart
+
+                TriggerEvent('esx_garage:hasEnteredMarker', currentMarker, currentPart)
+            end
+
+            if not isInMarker and HasAlreadyEnteredMarker then
+                HasAlreadyEnteredMarker = false
+
+                TriggerEvent('esx_garage:hasExitedMarker')
+            end
+
+            Wait(0)
+        else
+            Wait(500)
+        end
+    end
 end)

@@ -8,16 +8,14 @@ function OpenShopMenu()
 	TriggerEvent('esx_skin:openRestrictedMenu', function(data, menu)
 		menu.close()
 
-		ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'shop_confirm', {
-			title = _U('valid_this_purchase'),
-			align = 'top-left',
-			elements = {
-				{label = _U('no'), value = 'no'},
-				{label = _U('yes'), value = 'yes'}
-		}}, function(data, menu)
-			menu.close()
+		local elements = {
+			{unselectable = true, icon = "fas fa-check-double", title = TranslateCap("valid_this_purchase")},
+			{icon = "fas fa-check-circle", title = TranslateCap("yes"), value = "yes"},
+			{icon = "fas fa-window-close", title = TranslateCap("no"), value = "no"},
+		}
 
-			if data.current.value == 'yes' then
+		ESX.OpenContext("right", elements, function(menu,element)
+			if element.value == "yes" then
 				ESX.TriggerServerCallback('esx_clotheshop:buyClothes', function(bought)
 					if bought then
 						TriggerEvent('skinchanger:getSkin', function(skin)
@@ -25,58 +23,55 @@ function OpenShopMenu()
 						end)
 
 						hasPaid = true
-
 						ESX.TriggerServerCallback('esx_clotheshop:checkPropertyDataStore', function(foundStore)
 							if foundStore then
-								ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'save_dressing', {
-									title = _U('save_in_dressing'),
-									align = 'top-left',
-									elements = {
-										{label = _U('no'),  value = 'no'},
-										{label = _U('yes'), value = 'yes'}
-								}}, function(data2, menu2)
-									menu2.close()
+								local elements2 = {
+									{unselectable = true, icon = "fas fa-check-double", title = TranslateCap('save_in_dressing')},
+									{icon = "fas fa-check-circle", title = TranslateCap("yes"), value = "yes"},
+									{icon = "fas fa-window-close", title = TranslateCap("no"), value = "no"},
+								}
 
-									if data2.current.value == 'yes' then
+								ESX.OpenContext("right", elements2, function(menu2,element2)
+									if element2.value == "yes" then
 										ESX.UI.Menu.Open('dialog', GetCurrentResourceName(), 'outfit_name', {
-											title = _U('name_outfit')
+											title = TranslateCap('name_outfit')
 										}, function(data3, menu3)
 											menu3.close()
 
 											TriggerEvent('skinchanger:getSkin', function(skin)
+												ESX.CloseContext()
 												TriggerServerEvent('esx_clotheshop:saveOutfit', data3.value, skin)
-												ESX.ShowNotification(_U('saved_outfit'))
+												ESX.ShowNotification(TranslateCap('saved_outfit'))
 											end)
 										end, function(data3, menu3)
 											menu3.close()
 										end)
+									elseif element2.value == "no" then
+										ESX.CloseContext()
 									end
 								end)
 							end
 						end)
-
 					else
+						ESX.CloseContext()
 						ESX.TriggerServerCallback('esx_skin:getPlayerSkin', function(skin)
 							TriggerEvent('skinchanger:loadSkin', skin)
 						end)
-
-						ESX.ShowNotification(_U('not_enough_money'))
+						ESX.ShowNotification(TranslateCap('not_enough_money'))
 					end
 				end)
-			elseif data.current.value == 'no' then
+			elseif element.value == "no" then
 				ESX.TriggerServerCallback('esx_skin:getPlayerSkin', function(skin)
 					TriggerEvent('skinchanger:loadSkin', skin)
 				end)
+				ESX.CloseContext()
 			end
-
 			currentAction     = 'shop_menu'
-			currentActionMsg  = _U('press_menu')
+			currentActionMsg  = TranslateCap('press_menu')
 			currentActionData = {}
-		end, function(data, menu)
-			menu.close()
-
+		end, function(menu)
 			currentAction     = 'shop_menu'
-			currentActionMsg  = _U('press_menu')
+			currentActionMsg  = TranslateCap('press_menu')
 			currentActionData = {}
 		end)
 
@@ -84,13 +79,13 @@ function OpenShopMenu()
 		menu.close()
 
 		currentAction     = 'shop_menu'
-		currentActionMsg  = _U('press_menu')
+		currentActionMsg  = TranslateCap('press_menu')
 		currentActionData = {}
 	end, {
 		'tshirt_1', 'tshirt_2',
 		'torso_1', 'torso_2',
 		'decals_1', 'decals_2',
-		'arms',
+		'arms',	'arms_2',
 		'pants_1', 'pants_2',
 		'shoes_1', 'shoes_2',
         'bags_1', 'bags_2',
@@ -102,12 +97,12 @@ end
 
 AddEventHandler('esx_clotheshop:hasEnteredMarker', function(zone)
 	currentAction     = 'shop_menu'
-	currentActionMsg  = _U('press_menu')
+	currentActionMsg  = TranslateCap('press_menu')
 	currentActionData = {}
 end)
 
 AddEventHandler('esx_clotheshop:hasExitedMarker', function(zone)
-	ESX.UI.Menu.CloseAll()
+	ESX.CloseContext()
 	currentAction = nil
 
 	if not hasPaid then
@@ -127,7 +122,7 @@ CreateThread(function()
 		SetBlipAsShortRange(blip, true)
 
 		BeginTextCommandSetBlipName('STRING')
-		AddTextComponentSubstringPlayerName(_U('clothes'))
+		AddTextComponentSubstringPlayerName(TranslateCap('clothes'))
 		EndTextCommandSetBlipName(blip)
 	end
 end)

@@ -7,11 +7,7 @@ for i = 97, 122 do table.insert(Charset, string.char(i)) end
 function ESX.GetRandomString(length)
 	math.randomseed(GetGameTimer())
 
-	if length > 0 then
-		return ESX.GetRandomString(length - 1) .. Charset[math.random(1, #Charset)]
-	else
-		return ''
-	end
+	return length > 0 and ESX.GetRandomString(length - 1) .. Charset[math.random(1, #Charset)] or ''
 end
 
 function ESX.GetConfig()
@@ -30,7 +26,7 @@ end
 
 function ESX.GetWeaponFromHash(weaponHash)
 	for k,v in ipairs(Config.Weapons) do
-		if GetHashKey(v.name) == weaponHash then
+		if joaat(v.name) == weaponHash then
 			return v
 		end
 	end

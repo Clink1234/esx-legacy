@@ -32,7 +32,9 @@ end)
 --drawk marker
 CreateThread(function()
 	while true do 
+		local Sleep = 1500
 		if(inRangeMarkerDrugShop) then
+			Sleep = 0
 			local coordsMarker = Config.CircleZones.DrugDealer.coords
 			local color = cfgMarker.Color
 			DrawMarker(cfgMarker.Type, coordsMarker.x, coordsMarker.y,coordsMarker.z - 1.0,
@@ -40,23 +42,22 @@ CreateThread(function()
 			cfgMarker.Size, color.r,color.g,color.b,color.a,
 			false, true, 2, false, nil, nil, false)
 		end
-		Wait(0)
+		Wait(Sleep)
 	end
 end)
 
 --main loop
 CreateThread(function ()
 	while true do 
-		if inZoneDrugShop then
-			if(not menuOpen) then
-				ESX.ShowHelpNotification(_U('dealer_prompt'),true)
-				if IsControlJustPressed(0, 38) then
-					OpenDrugShop()
-				end
+		local Sleep = 1500
+		if inZoneDrugShop and not menuOpen then
+			Sleep = 0
+			ESX.ShowHelpNotification(TranslateCap('dealer_prompt'),true)
+			if IsControlJustPressed(0, 38) then
+				OpenDrugShop()
 			end
 		end
-
-		Wait(15)
+	Wait(Sleep)
 	end
 end)
 
@@ -70,7 +71,7 @@ function OpenDrugShop()
 
 		if price and v.count > 0 then
 			table.insert(elements, {
-				label = ('%s - <span style="color:green;">%s</span>'):format(v.label, _U('dealer_item', ESX.Math.GroupDigits(price))),
+				label = ('%s - <span style="color:green;">%s</span>'):format(v.label, TranslateCap('dealer_item', ESX.Math.GroupDigits(price))),
 				name = v.name,
 				price = price,
 
@@ -84,7 +85,7 @@ function OpenDrugShop()
 	end
 
 	ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'drug_shop', {
-		title    = _U('dealer_title'),
+		title    = TranslateCap('dealer_title'),
 		align    = 'top-left',
 		elements = elements
 	}, function(data, menu)
@@ -109,12 +110,12 @@ function OpenBuyLicenseMenu(licenseName)
 
 	local elements = {
 		{
-			label = _U('license_no'),
+			label = TranslateCap('license_no'),
 			value = 'no'
 		},
 
 		{
-			label = ('%s - <span style="color:green;">%s</span>'):format(license.label, _U('dealer_item', ESX.Math.GroupDigits(license.price))),
+			label = ('%s - <span style="color:green;">%s</span>'):format(license.label, TranslateCap('dealer_item', ESX.Math.GroupDigits(license.price))),
 			value = licenseName,
 			price = license.price,
 			licenseName = license.label
@@ -122,7 +123,7 @@ function OpenBuyLicenseMenu(licenseName)
 	}
 
 	ESX.UI.Menu.Open('default', GetCurrentResourceName(), 'license_shop', {
-		title    = _U('license_title'),
+		title    = TranslateCap('license_title'),
 		align    = 'top-left',
 		elements = elements
 	}, function(data, menu)
@@ -130,9 +131,9 @@ function OpenBuyLicenseMenu(licenseName)
 		if data.current.value ~= 'no' then
 			ESX.TriggerServerCallback('esx_drugs:buyLicense', function(boughtLicense)
 				if boughtLicense then
-					ESX.ShowNotification(_U('license_bought', data.current.licenseName, ESX.Math.GroupDigits(data.current.price)))
+					ESX.ShowNotification(TranslateCap('license_bought', data.current.licenseName, ESX.Math.GroupDigits(data.current.price)))
 				else
-					ESX.ShowNotification(_U('license_bought_fail', data.current.licenseName))
+					ESX.ShowNotification(TranslateCap('license_bought_fail', data.current.licenseName))
 				end
 			end, data.current.value)
 		else

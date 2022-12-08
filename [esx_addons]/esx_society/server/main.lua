@@ -58,74 +58,104 @@ AddEventHandler('esx_society:getSociety', function(name, cb)
 	cb(GetSociety(name))
 end)
 
+RegisterServerEvent('esx_society:checkSocietyBalance')
+AddEventHandler('esx_society:checkSocietyBalance', function(society)
+	local xPlayer = ESX.GetPlayerFromId(source)
+	local society = GetSociety(society)
+
+	if xPlayer.job.name ~= society.name then
+		print(('esx_society: %s attempted to call checkSocietyBalance!'):format(xPlayer.identifier))
+		return
+	end
+
+	TriggerEvent('esx_addonaccount:getSharedAccount', society.account, function(account)
+		TriggerClientEvent("esx:showNotification", xPlayer.source, TranslateCap('check_balance', ESX.Math.GroupDigits(account.money)))
+	end)
+end)
+
 RegisterServerEvent('esx_society:withdrawMoney')
 AddEventHandler('esx_society:withdrawMoney', function(societyName, amount)
-	local xPlayer = ESX.GetPlayerFromId(source)
+	local source = source
 	local society = GetSociety(societyName)
+	if not society then
+		print(('[^3WARNING^7] Player ^5%s^7 attempted to withdraw from non-existing society - ^5%s^7!'):format(source, societyName))
+		return
+	end
+	local xPlayer = ESX.GetPlayerFromId(source)
 	amount = ESX.Math.Round(tonumber(amount))
-
 	if xPlayer.job.name == society.name then
 		TriggerEvent('esx_addonaccount:getSharedAccount', society.account, function(account)
 			if amount > 0 and account.money >= amount then
 				account.removeMoney(amount)
-				xPlayer.addMoney(amount)
-				xPlayer.showNotification(_U('have_withdrawn', ESX.Math.GroupDigits(amount)))
+				xPlayer.addMoney(amount, "Society Withdraw")
+				xPlayer.showNotification(TranslateCap('have_withdrawn', ESX.Math.GroupDigits(amount)))
 			else
-				xPlayer.showNotification(_U('invalid_amount'))
+				xPlayer.showNotification(TranslateCap('invalid_amount'))
 			end
 		end)
 	else
-		print(('esx_society: %s attempted to call withdrawMoney!'):format(xPlayer.identifier))
+		print(('[^3WARNING^7] Player ^5%s^7 attempted to withdraw from society - ^5%s^7!'):format(source, society.name))
 	end
 end)
 
 RegisterServerEvent('esx_society:depositMoney')
 AddEventHandler('esx_society:depositMoney', function(societyName, amount)
+	local source = source
 	local xPlayer = ESX.GetPlayerFromId(source)
 	local society = GetSociety(societyName)
+	if not society then
+		print(('[^3WARNING^7] Player ^5%s^7 attempted to deposit to non-existing society - ^5%s^7!'):format(source, societyName))
+		return
+	end
 	amount = ESX.Math.Round(tonumber(amount))
 
 	if xPlayer.job.name == society.name then
 		if amount > 0 and xPlayer.getMoney() >= amount then
 			TriggerEvent('esx_addonaccount:getSharedAccount', society.account, function(account)
-				xPlayer.removeMoney(amount)
-				xPlayer.showNotification(_U('have_deposited', ESX.Math.GroupDigits(amount)))
+				xPlayer.removeMoney(amount, "Society Deposit")
+				xPlayer.showNotification(TranslateCap('have_deposited', ESX.Math.GroupDigits(amount)))
 				account.addMoney(amount)
 			end)
 		else
-			xPlayer.showNotification(_U('invalid_amount'))
+			xPlayer.showNotification(TranslateCap('invalid_amount'))
 		end
 	else
-		print(('esx_society: %s attempted to call depositMoney!'):format(xPlayer.identifier))
+		print(('[^3WARNING^7] Player ^5%s^7 attempted to deposit to society - ^5%s^7!'):format(source, society.name))
 	end
 end)
 
 RegisterServerEvent('esx_society:washMoney')
 AddEventHandler('esx_society:washMoney', function(society, amount)
+	local source = source
 	local xPlayer = ESX.GetPlayerFromId(source)
 	local account = xPlayer.getAccount('black_money')
 	amount = ESX.Math.Round(tonumber(amount))
 
 	if xPlayer.job.name == society then
 		if amount and amount > 0 and account.money >= amount then
-			xPlayer.removeAccountMoney('black_money', amount)
+			xPlayer.removeAccountMoney('black_money', amount, "Washing")
 
 			MySQL.insert('INSERT INTO society_moneywash (identifier, society, amount) VALUES (?, ?, ?)', {xPlayer.identifier, society, amount},
 			function(rowsChanged)
-				xPlayer.showNotification(_U('you_have', ESX.Math.GroupDigits(amount)))
+				xPlayer.showNotification(TranslateCap('you_have', ESX.Math.GroupDigits(amount)))
 			end)
 		else
-			xPlayer.showNotification(_U('invalid_amount'))
+			xPlayer.showNotification(TranslateCap('invalid_amount'))
 		end
 	else
-		print(('esx_society: %s attempted to call washMoney!'):format(xPlayer.identifier))
+		print(('[^3WARNING^7] Player ^5%s^7 attempted to wash money in society - ^5%s^7!'):format(source, society))
 	end
 end)
 
 RegisterServerEvent('esx_society:putVehicleInGarage')
 AddEventHandler('esx_society:putVehicleInGarage', function(societyName, vehicle)
+	local source = source
+	local xPlayer = ESX.GetPlayerFromId(source)
 	local society = GetSociety(societyName)
-
+	if not society then
+		print(('[^3WARNING^7] Player ^5%s^7 attempted to put vehicle in non-existing society garage - ^5%s^7!'):format(source, societyName))
+		return
+	end
 	TriggerEvent('esx_datastore:getSharedDataStore', society.datastore, function(store)
 		local garage = store.get('garage') or {}
 		table.insert(garage, vehicle)
@@ -135,8 +165,13 @@ end)
 
 RegisterServerEvent('esx_society:removeVehicleFromGarage')
 AddEventHandler('esx_society:removeVehicleFromGarage', function(societyName, vehicle)
+	local source = source
+	local xPlayer = ESX.GetPlayerFromId(source)
 	local society = GetSociety(societyName)
-
+	if not society then
+		print(('[^3WARNING^7] Player ^5%s^7 attempted to remove vehicle from non-existing society garage - ^5%s^7!'):format(source, societyName))
+		return
+	end
 	TriggerEvent('esx_datastore:getSharedDataStore', society.datastore, function(store)
 		local garage = store.get('garage') or {}
 
@@ -153,7 +188,10 @@ end)
 
 ESX.RegisterServerCallback('esx_society:getSocietyMoney', function(source, cb, societyName)
 	local society = GetSociety(societyName)
-
+	if not society then
+		print(('[^3WARNING^7] Player ^5%s^7 attempted to get money from non-existing society - ^5%s^7!'):format(source, societyName))
+		return
+	end
 	if society then
 		TriggerEvent('esx_addonaccount:getSharedAccount', society.account, function(account)
 			cb(account.money)
@@ -167,7 +205,8 @@ ESX.RegisterServerCallback('esx_society:getEmployees', function(source, cb, soci
 	local employees = {}
 
 	local xPlayers = ESX.GetExtendedPlayers('job', society)
-	for _, xPlayer in pairs(xPlayers) do
+	for i=1, #(xPlayers) do 
+		local xPlayer = xPlayers[i]
 
 		local name = xPlayer.name
 		if Config.EnableESXIdentity and name == GetPlayerName(xPlayer.source) then
@@ -248,22 +287,25 @@ ESX.RegisterServerCallback('esx_society:getJob', function(source, cb, society)
 	cb(job)
 end)
 
-ESX.RegisterServerCallback('esx_society:setJob', function(source, cb, identifier, job, grade, type)
+ESX.RegisterServerCallback('esx_society:setJob', function(source, cb, identifier, job, grade, actionType)
 	local xPlayer = ESX.GetPlayerFromId(source)
 	local isBoss = xPlayer.job.grade_name == 'boss'
+	local xTarget = ESX.GetPlayerFromIdentifier(identifier)
 
 	if isBoss then
-		local xTarget = ESX.GetPlayerFromIdentifier(identifier)
 
 		if xTarget then
 			xTarget.setJob(job, grade)
 
-			if type == 'hire' then
-				xTarget.showNotification(_U('you_have_been_hired', job))
-			elseif type == 'promote' then
-				xTarget.showNotification(_U('you_have_been_promoted'))
-			elseif type == 'fire' then
-				xTarget.showNotification(_U('you_have_been_fired', xTarget.getJob().label))
+			if actionType == 'hire' then
+				xTarget.showNotification(TranslateCap('you_have_been_hired', job))
+				xPlayer.showNotification(TranslateCap("you_have_hired", xTarget.getName()))
+			elseif actionType == 'promote' then
+				xTarget.showNotification(TranslateCap('you_have_been_promoted'))
+				xPlayer.showNotification(TranslateCap("you_have_promoted", xTarget.getName(), xTarget.getJob().label))
+			elseif actionType == 'fire' then
+				xTarget.showNotification(TranslateCap('you_have_been_fired', xTarget.getJob().label))
+				xPlayer.showNotification(TranslateCap("you_have_fired", xTarget.getName()))
 			end
 
 			cb()
@@ -274,10 +316,11 @@ ESX.RegisterServerCallback('esx_society:setJob', function(source, cb, identifier
 			end)
 		end
 	else
-		print(('esx_society: %s attempted to setJob'):format(xPlayer.identifier))
+		print(('[^3WARNING^7] Player ^5%s^7 attempted to setJob for Player ^5%s^7!'):format(source, xTarget.source))
 		cb()
 	end
 end)
+
 
 ESX.RegisterServerCallback('esx_society:setJobSalary', function(source, cb, job, grade, salary)
 	local xPlayer = ESX.GetPlayerFromId(source)
@@ -287,7 +330,8 @@ ESX.RegisterServerCallback('esx_society:setJobSalary', function(source, cb, job,
 			MySQL.update('UPDATE job_grades SET salary = ? WHERE job_name = ? AND grade = ?', {salary, job, grade},
 			function(rowsChanged)
 				Jobs[job].grades[tostring(grade)].salary = salary
-
+				ESX.RefreshJobs()
+				Wait(1)
 				local xPlayers = ESX.GetExtendedPlayers('job', job)
 				for _, xTarget in pairs(xPlayers) do
 
@@ -295,15 +339,38 @@ ESX.RegisterServerCallback('esx_society:setJobSalary', function(source, cb, job,
 						xTarget.setJob(job, grade)
 					end
 				end
-
 				cb()
 			end)
 		else
-			print(('esx_society: %s attempted to setJobSalary over config limit!'):format(xPlayer.identifier))
+			print(('[^3WARNING^7] Player ^5%s^7 attempted to setJobSalary over the config limit for ^5%s^7!'):format(source, job))
 			cb()
 		end
 	else
-		print(('esx_society: %s attempted to setJobSalary'):format(xPlayer.identifier))
+		print(('[^3WARNING^7] Player ^5%s^7 attempted to setJobSalary for ^5%s^7!'):format(source, job))
+		cb()
+	end
+end)
+
+ESX.RegisterServerCallback('esx_society:setJobLabel', function(source, cb, job, grade, label)
+	local xPlayer = ESX.GetPlayerFromId(source)
+
+	if xPlayer.job.name == job and xPlayer.job.grade_name == 'boss' then
+			MySQL.update('UPDATE job_grades SET label = ? WHERE job_name = ? AND grade = ?', {label, job, grade},
+			function(rowsChanged)
+				Jobs[job].grades[tostring(grade)].label = label
+				ESX.RefreshJobs()
+				Wait(1)
+				local xPlayers = ESX.GetExtendedPlayers('job', job)
+				for _, xTarget in pairs(xPlayers) do
+
+					if xTarget.job.grade == grade then
+						xTarget.setJob(job, grade)
+					end
+				end
+				cb()
+			end)
+	else
+		print(('[^3WARNING^7] Player ^5%s^7 attempted to setJobLabel for ^5%s^7!'):format(source, job))
 		cb()
 	end
 end)
@@ -314,7 +381,8 @@ ESX.RegisterServerCallback('esx_society:getOnlinePlayers', function(source, cb)
 		getOnlinePlayers, onlinePlayers = true, {}
 		
 		local xPlayers = ESX.GetExtendedPlayers()
-		for _, xPlayer in pairs(xPlayers) do
+		for i=1, #(xPlayers) do 
+			local xPlayer = xPlayers[i]
 			table.insert(onlinePlayers, {
 				source = xPlayer.source,
 				identifier = xPlayer.identifier,
@@ -334,7 +402,10 @@ end)
 
 ESX.RegisterServerCallback('esx_society:getVehiclesInGarage', function(source, cb, societyName)
 	local society = GetSociety(societyName)
-
+	if not society then
+		print(('[^3WARNING^7] Attempting To get a non-existing society - %s!'):format(societyName))
+		return
+	end
 	TriggerEvent('esx_datastore:getSharedDataStore', society.datastore, function(store)
 		local garage = store.get('garage') or {}
 		cb(garage)
@@ -369,7 +440,7 @@ function WashMoneyCRON(d, h, m)
 
 			-- send notification if player is online
 			if xPlayer then
-				xPlayer.showNotification(_U('you_have_laundered', ESX.Math.GroupDigits(result[i].amount)))
+				xPlayer.showNotification(TranslateCap('you_have_laundered', ESX.Math.GroupDigits(result[i].amount)))
 			end
 
 		end

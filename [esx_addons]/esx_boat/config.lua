@@ -1,6 +1,6 @@
 Config               = {}
 
-Config.Locale        = 'en'
+Config.Locale = GetConvar('esx:locale', 'en')
 
 Config.LicenseEnable = true -- enable boat license? Requires esx_license
 Config.LicensePrice  = 50000
@@ -86,3 +86,7 @@ Config.Vehicles = {
 	{model = 'toro', label = 'Toro', price = 200000},
 	{model = 'submersible', label = 'Submersible', price = 750000}
 }
+
+exports('getGarages', function()
+	return Config.Zones.Garages
+end)

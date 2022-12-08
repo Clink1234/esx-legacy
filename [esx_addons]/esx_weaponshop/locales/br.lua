@@ -1,4 +1,8 @@
 Locales ['br'] = {
+  ["license_shop_title"] = "License Shop",
+  ["weapon_shop_menu_title"] = "Weapon Shop",
+  ["weapon_shop_menu_description"] = "Buy Weapons",
+  ["menu_cancel"] = "Cancel",
   ['buy_license'] = 'comprar licença de porte de arma?',
   ['yes'] = '%s',
   ['no'] = 'não',
@@ -7,7 +11,7 @@ Locales ['br'] = {
   ['not_enough'] = 'você não tem dinheiro suficiente',
   ['already_owned'] = 'você já possui esta arma!',
   ['shop_menu_title'] = 'comprar',
-  ['shop_menu_prompt'] = 'pressione ~INPUT_CONTEXT~ para comprar armas.',
+  ['shop_menu_prompt'] = 'pressione [E] para comprar armas.',
   ['shop_menu_item'] = 'R$%s',
   ['map_blip'] = 'loja de Armas',
 }

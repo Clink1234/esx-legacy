@@ -1,4 +1,4 @@
-USE `es_extended`;
+
 
 INSERT INTO `jobs` (name, label) VALUES
 	('taxi', 'Taxi')

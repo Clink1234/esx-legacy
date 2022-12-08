@@ -9,7 +9,7 @@ Config.MaxInService               = -1 -- How much people can be in service at o
 Config.EnablePlayerManagement     = false -- Enable society managing.
 Config.EnableSocietyOwnedVehicles = false
 
-Config.Locale                     = 'en'
+Config.Locale = GetConvar('esx:locale', 'en')
 
 Config.AuthorizedVehicles = {
 	{model = 'taxi', label = 'Taxi'}

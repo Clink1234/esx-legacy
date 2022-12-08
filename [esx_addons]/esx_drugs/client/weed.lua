@@ -22,24 +22,23 @@ CreateThread(function()
 		if #(coords - Config.CircleZones.WeedProcessing.coords) < 1 then
 			wait = 2
 			if not isProcessing then
-				ESX.ShowHelpNotification(_U('weed_processprompt'))
+				ESX.ShowHelpNotification(TranslateCap('weed_processprompt'))
 			end
 
 			if IsControlJustReleased(0, 38) and not isProcessing then
-				if Config.LicenseEnable then
-					ESX.TriggerServerCallback('esx_license:checkLicense', function(hasProcessingLicense)
-						if hasProcessingLicense then
-							ProcessWeed()
-						else
-							OpenBuyLicenseMenu('weed_processing')
-						end
-					end, GetPlayerServerId(PlayerId()), 'weed_processing')
-				else
-					ESX.TriggerServerCallback('esx_drugs:cannabis_count', function(xCannabis)
+				ESX.TriggerServerCallback('esx_drugs:cannabis_count', function(xCannabis)
+					if Config.LicenseEnable then
+						ESX.TriggerServerCallback('esx_license:checkLicense', function(hasProcessingLicense)
+							if hasProcessingLicense then
+								ProcessWeed(xCannabis)
+							else
+								OpenBuyLicenseMenu('weed_processing')
+							end
+						end, GetPlayerServerId(PlayerId()), 'weed_processing')
+					else
 						ProcessWeed(xCannabis)
-					end)
-					
-				end
+					end
+				end)
 			end
 		end
 		Wait(wait)
@@ -48,7 +47,7 @@ end)
 
 function ProcessWeed(xCannabis)
 	isProcessing = true
-	ESX.ShowNotification(_U('weed_processingstarted'))
+	ESX.ShowNotification(TranslateCap('weed_processingstarted'))
   TriggerServerEvent('esx_drugs:processCannabis')
 	if(xCannabis <= 3) then
 		xCannabis = 0
@@ -61,7 +60,7 @@ function ProcessWeed(xCannabis)
 		timeLeft = timeLeft - 1
 
 		if #(GetEntityCoords(playerPed) - Config.CircleZones.WeedProcessing.coords) > 4 then
-			ESX.ShowNotification(_U('weed_processingtoofar'))
+			ESX.ShowNotification(TranslateCap('weed_processingtoofar'))
 			TriggerServerEvent('esx_drugs:cancelProcessing')
 			TriggerServerEvent('esx_drugs:outofbound')
 			break
@@ -73,7 +72,7 @@ end
 
 CreateThread(function()
 	while true do
-		Wait(0)
+		local Sleep = 1500
 
 		local playerPed = PlayerPedId()
 		local coords = GetEntityCoords(playerPed)
@@ -86,8 +85,9 @@ CreateThread(function()
 		end
 
 		if nearbyObject and IsPedOnFoot(playerPed) then
+			Sleep = 0
 			if not isPickingUp then
-				ESX.ShowHelpNotification(_U('weed_pickupprompt'))
+				ESX.ShowHelpNotification(TranslateCap('weed_pickupprompt'))
 			end
 
 			if IsControlJustReleased(0, 38) and not isPickingUp then
@@ -108,15 +108,14 @@ CreateThread(function()
 		
 						TriggerServerEvent('esx_drugs:pickedUpCannabis')
 					else
-						ESX.ShowNotification(_U('weed_inventoryfull'))
+						ESX.ShowNotification(TranslateCap('weed_inventoryfull'))
 					end
 
 					isPickingUp = false
 				end, 'cannabis')
 			end
-		else
-			Wait(500)
 		end
+	Wait(Sleep)
 	end
 end)
 

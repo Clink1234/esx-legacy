@@ -1,14 +1,20 @@
 Config                            = {}
 
-Config.DrawDistance               = 30.0 -- How close do you need to be in order for the markers to be drawn (in GTA units).
-
+Config.DrawDistance               = 10.0 -- How close do you need to be in order for the markers to be drawn (in GTA units).
+Config.Debug                      = ESX.GetConfig().EnableDebug
 Config.Marker                     = {type = 1, x = 1.5, y = 1.5, z = 0.5, r = 102, g = 0, b = 102, a = 100, rotate = false}
 
 Config.ReviveReward               = 3000  -- Revive reward, set to 0 if you don't want it enabled
 Config.AntiCombatLog              = true -- Enable anti-combat logging? (Removes Items when a player logs back after intentionally logging out while dead.)
 Config.LoadIpl                    = true -- Disable if you're using fivem-ipl or other IPL loaders
 
-Config.Locale                     = 'en'
+Config.Locale = GetConvar('esx:locale', 'en')
+
+Config.DistressBlip = {
+	Sprite = 310,
+	Color = 48,
+	Scale = 2.0
+}
 
 Config.EarlyRespawnTimer          = 60000 * 1  -- time til respawn is available
 Config.BleedoutTimer              = 60000 * 10 -- time til the player bleeds out
@@ -23,7 +29,12 @@ Config.RemoveItemsAfterRPDeath    = false
 Config.EarlyRespawnFine           = false
 Config.EarlyRespawnFineAmount     = 5000
 
-Config.RespawnPoint = {coords = vector3(358.11, -585.65, 43.28), heading = 66.6}
+Config.OxInventory                = ESX.GetConfig().OxInventory
+Config.RespawnPoints = {
+	--{coords = vector3(341.0, -1397.3, 32.5), heading = 48.5}, -- Central Los Santos
+	--{coords = vector3(1836.03, 3670.99, 34.28), heading = 296.06} -- Sandy Shores
+	{coords = vector3(358.11, -585.65, 43.28), heading = 66.6} -- Pillbox
+}
 
 Config.Hospitals = {
 
@@ -45,7 +56,7 @@ Config.Hospitals = {
 		},
 
 		Vehicles = {
-			{
+			--[[{
 				Spawner = vector3(340.69, -570.59, 28.8),
 				InsideShop = vector3(318.35, -574.23, 28.8),
 				Marker = {type = 36, x = 1.0, y = 1.0, z = 1.0, r = 100, g = 50, b = 200, a = 100, rotate = true},
@@ -53,18 +64,18 @@ Config.Hospitals = {
 					{coords = vector3(332.25, -577.64, 28.38), heading = 339.73, radius = 4.0},
 					{coords = vector3(325.58, -574.48, 28.38), heading = 339.91, radius = 4.0},
 				}
-			}
+			}--]]
 		},
 
 		Helicopters = {
-			{
+			--[[{
 				Spawner = vector3(347.85, -598.5, 74.16),
 				InsideShop = vector3(347.85, -598.5, 74.16),
 				Marker = {type = 34, x = 1.5, y = 1.5, z = 1.5, r = 100, g = 150, b = 150, a = 100, rotate = true},
 				SpawnPoints = {
 					{coords = vector3(352.18, -588.19, 74.52), heading = 71.3, radius = 10.0},
 				}
-			}
+			}--]]
 		},
 
 		FastTravels = {

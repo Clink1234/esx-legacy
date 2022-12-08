@@ -1,7 +1,7 @@
 # esx_phone
 
 ### Note
-- All scripts that implement the usage of esx phone must be started **after** this script, or else they wont register and no messages will be received.
+- All scripts that implement the usage of esx phone must be started **after** this script, or else they won't register and no messages will be received.
 
 ## Download & Installation
 
@@ -51,7 +51,7 @@ TriggerServerEvent('esx_phone:registerNumber', number, type, sharePos, hasDispat
 
 example
 
-TriggerEvent('esx_phone:registerNumber', 'ambulance', _U('alert_ambulance'), true, true)
+TriggerEvent('esx_phone:registerNumber', 'ambulance', TranslateCap('alert_ambulance'), true, true)
 
 last two booleans are optional
 ```

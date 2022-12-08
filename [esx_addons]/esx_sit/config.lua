@@ -1,7 +1,7 @@
 Config = {}
 
 Config.MaxDistance = 1.5
-Config.Debug = false
+Config.Debug = ESX.GetConfig().EnableDebug
 
 Config.Interactables = {
 	'prop_bench_01a',
@@ -12,7 +12,7 @@ Config.Interactables = {
 	'prop_bench_04',
 	'prop_bench_05',
 	'prop_bench_06',
-	'prop_bench_05',
+	'prop_bench_07',
 	'prop_bench_08',
 	'prop_bench_09',
 	'prop_bench_10',
@@ -30,7 +30,7 @@ Config.Interactables = {
 	'prop_chair_04b',
 	'prop_chair_05',
 	'prop_chair_06',
-	'prop_chair_05',
+	'prop_chair_07',
 	'prop_chair_08',
 	'prop_chair_09',
 	'prop_chair_10',
@@ -84,10 +84,6 @@ Config.Interactables = {
 	'v_ilev_fh_dineeamesa',
 	'v_ilev_fh_kitchenstool',
 	'v_ilev_tort_stool',
-	'v_ilev_fh_kitchenstool',
-	'v_ilev_fh_kitchenstool',
-	'v_ilev_fh_kitchenstool',
-	'v_ilev_fh_kitchenstool',
 	'hei_prop_yah_seat_01',
 	'hei_prop_yah_seat_02',
 	'hei_prop_yah_seat_03',

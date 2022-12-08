@@ -1,4 +1,8 @@
 Locales ['de'] = {
+  ["license_shop_title"] = "License Shop",
+  ["weapon_shop_menu_title"] = "Weapon Shop",
+  ["weapon_shop_menu_description"] = "Buy Weapons",
+  ["menu_cancel"] = "Cancel",
   ['buy_license'] = 'Waffenlizenz kaufen?',
   ['yes'] = '%s',
   ['no'] = 'Nein',
@@ -7,7 +11,7 @@ Locales ['de'] = {
   ['not_enough'] = 'Du hast nicht genug Geld',
   ['already_owned'] = 'Du besitzt diese Waffe bereits',
   ['shop_menu_title'] = 'Geschäft',
-  ['shop_menu_prompt'] = 'Drücke ~INPUT_CONTEXT~ um auf das Geschäft zuzugreifen.',
+  ['shop_menu_prompt'] = 'Drücke [E] um auf das Geschäft zuzugreifen.',
   ['shop_menu_item'] = '%s EUR',
   ['map_blip'] = 'Waffenladen',
 }

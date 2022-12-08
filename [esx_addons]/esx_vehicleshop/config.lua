@@ -4,7 +4,7 @@ Config.MarkerColor                = {r = 120, g = 120, b = 240}
 Config.EnablePlayerManagement     = false -- enables the actual car dealer job. You'll need esx_addonaccount, esx_billing and esx_society
 Config.ResellPercentage           = 80
 
-Config.Locale                     = 'en'
+Config.Locale = GetConvar('esx:locale', 'en')
 
 Config.LicenseEnable = false -- require people to own drivers license when buying vehicles? Only applies if EnablePlayerManagement is disabled. Requires esx_license
 
@@ -15,6 +15,13 @@ Config.PlateNumbers  = 3
 Config.PlateUseSpace = true
 
 Config.OxInventory = ESX.GetConfig().OxInventory
+
+Config.Blip = {
+	show = true,
+	Sprite = 326,
+	Display = 4,
+	Scale = 0.8
+}
 
 Config.Zones = {
 

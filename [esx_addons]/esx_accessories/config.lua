@@ -1,6 +1,6 @@
 Config = {}
 
-Config.Locale = 'en'
+Config.Locale = GetConvar('esx:locale', 'en')
 
 Config.Price = 100
 
@@ -8,7 +8,7 @@ Config.EnableControls = true
 
 Config.DrawDistance = 10
 Config.Size   = {x = 1.5, y = 1.5, z = 1.0}
-Config.Color  = {r = 102, g = 102, b = 204}
+Config.Color  = {r = 50, g = 200, b = 50}
 Config.Type   = 1
 
 -- Fill this if you want to see the blips,

@@ -1,10 +1,10 @@
 Locales['de'] = {
   ['by_default'] = 'Standard',
-  ['installed'] = 'installed',
+  ['installed'] = 'Installiert',
   ['already_own'] = 'Sie besitzen bereits: %s',
-  ['not_enough_money'] = 'du kannst dir diese mod nicht leisten',
+  ['not_enough_money'] = 'Du kannst dir diese mod nicht leisten',
   ['purchased'] = 'Du hast diese Mod gekauft!',
-  ['press_custom'] = 'Drücke ~INPUT_PICKUP~ um dein Fahrzeug auf zu Tunen',
+  ['press_custom'] = 'Drücke [E] um dein Fahrzeug auf zu Tunen',
   ['level'] = 'level %s',
   ['neon'] = 'Neon',
   ['blip_name'] = 'Tuning',
@@ -266,4 +266,11 @@ Locales['de'] = {
   ['fuel_tank'] = 'Treibstofftank',
   ['windows'] = 'Fenster',
   ['stickers'] = 'Designs',
+
+-- Xenon Colors
+  ['mintgreen'] = 'Mint Green',
+  ['goldenshower'] = 'Golden Shower',
+  ['ponypink'] = 'Pony Pink',
+  ['hotpink'] = 'Hot Pink',
+  ['blacklight'] = 'Blacklight',
 }

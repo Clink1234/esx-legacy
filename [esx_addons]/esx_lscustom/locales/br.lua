@@ -1,7 +1,7 @@
 Locales['br'] = {
   ['by_default'] = 'default',
   ['installed'] = 'instalado',
-  ['already_own'] = 'já possuis: ~b~%s~s~',
+  ['already_own'] = 'já possuis: %s',
   ['not_enough_money'] = 'sem dinheiro!',
   ['purchased'] = 'tu compraste esta peça!',
   ['press_custom'] = 'pressiona ~INPUT_PICKUP~ para personalizar o veiculo.',
@@ -266,4 +266,11 @@ Locales['br'] = {
   ['fuel_tank'] = 'tanque de combustível',
   ['windows'] = 'janelas',
   ['stickers'] = 'autocolantes',
+
+-- Xenon Colors
+  ['mintgreen'] = 'Mint Green',
+  ['goldenshower'] = 'Golden Shower',
+  ['ponypink'] = 'Pony Pink',
+  ['hotpink'] = 'Hot Pink',
+  ['blacklight'] = 'Blacklight',
 }

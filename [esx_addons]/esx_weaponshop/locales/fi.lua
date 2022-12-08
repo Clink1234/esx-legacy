@@ -1,4 +1,8 @@
 Locales ['fi'] = {
+  ["license_shop_title"] = "License Shop",
+  ["weapon_shop_menu_title"] = "Weapon Shop",
+  ["weapon_shop_menu_description"] = "Buy Weapons",
+  ["menu_cancel"] = "Cancel",
   ['buy_license'] = 'osta lisenssi?',
   ['yes'] = '%s',
   ['no'] = 'ei',
@@ -7,7 +11,7 @@ Locales ['fi'] = {
   ['not_enough'] = 'sinulla ei ole tarpeeksi rahaa',
   ['already_owned'] = 'you already own this weapon!',
   ['shop_menu_title'] = 'kauppa',
-  ['shop_menu_prompt'] = 'paina ~INPUT_CONTEXT~ avataksesi kauppa ikkuna.',
+  ['shop_menu_prompt'] = 'paina [E] avataksesi kauppa ikkuna.',
   ['shop_menu_item'] = '%s EUR',
   ['map_blip'] = 'asekauppa',
 }
