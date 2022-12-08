@@ -468,12 +468,15 @@ end
 
 if not Config.OxInventory and Config.EnableDefaultInventory then
 	RegisterCommand('showinv', function()
-		if not ESX.PlayerData.dead and not ESX.UI.Menu.IsOpen('default', 'es_extended', 'inventory') then
-			ESX.ShowInventory()
-		end
+    exports["gl-police"]:isHandcuffed(function(isHandcuffed)
+      print(isHandcuffed)
+      if not isHandcuffed and not ESX.PlayerData.dead and not ESX.UI.Menu.IsOpen('default', 'es_extended', 'inventory') then
+        ESX.ShowInventory()
+      end
+    end)
 	end)
 
-	RegisterKeyMapping('showinv', _U('keymap_showinventory'), 'keyboard', 'F2')
+	RegisterKeyMapping('showinv', _U('keymap_showinventory'), 'keyboard', 'TAB')
 end
 
 -- disable wanted level
