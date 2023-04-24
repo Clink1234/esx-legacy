@@ -165,6 +165,10 @@ function loadESXPlayer(identifier, playerId, isNew)
   local job, grade, jobObject, gradeObject = result.job, tostring(result.job_grade)
   local foundAccounts, foundItems = {}, {}
 
+  if result.sex then
+    userData.sex = result.sex
+  end
+  
   -- Accounts
   if result.accounts and result.accounts ~= '' then
     local accounts = json.decode(result.accounts)
@@ -342,8 +346,8 @@ function loadESXPlayer(identifier, playerId, isNew)
       xPlayer.set('height', userData.height)
     end
   end
-
-  TriggerEvent('esx:playerLoaded', playerId, xPlayer, isNew)
+  
+  TriggerEvent('esx:playerLoaded', playerId, xPlayer, isNew, userData.skin)
 
   xPlayer.triggerEvent('esx:playerLoaded',
     {

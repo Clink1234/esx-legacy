@@ -46,6 +46,8 @@ ESX.RegisterCommand('car', 'admin', function(xPlayer, args, showError)
 		local vehicle = NetworkGetEntityFromNetworkId(networkId)
 		Wait(250)
 		TaskWarpPedIntoVehicle(PlayerPed, vehicle, -1)
+    local plate = GetVehicleNumberPlateText(vehicle)
+    exports.wasabi_carlock:GiveKeys(plate, xPlayer.source)
 	end)
 end, false, {help = TranslateCap('command_car'), validate = false, arguments = {
 	{name = 'car',validate = false, help = TranslateCap('command_car_car'), type = 'string'}

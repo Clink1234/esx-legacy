@@ -30,32 +30,42 @@ end)
 RegisterNetEvent('esx:playerLoaded')
 AddEventHandler('esx:playerLoaded', function(xPlayer, isNew, skin)
 	ESX.PlayerData = xPlayer
-
+  
 	if Config.Multichar then
-		Wait(3000)
+		--Wait(3000)
+    if not skin.model then
+      TriggerEvent('skinchanger:loadDefaultModel', skin.sex == 0)
+    elseif skin then
+      TriggerEvent('skinchanger:loadSkin', skin)
+    end
 	else
-		exports.spawnmanager:spawnPlayer({
+    --Wait(3500)
+    if isNew then
+      TriggerEvent('skinchanger:loadDefaultModel', skin.sex == 0)
+    elseif skin then
+      TriggerEvent('skinchanger:loadSkin', skin)
+    end
+		--[[exports.spawnmanager:spawnPlayer({
 			x = ESX.PlayerData.coords.x,
 			y = ESX.PlayerData.coords.y,
 			z = ESX.PlayerData.coords.z + 0.25,
 			heading = ESX.PlayerData.coords.heading,
 			model = `mp_m_freemode_01`,
-			skipFade = true
+			skipFade = false
 		}, function()
 			--TriggerServerEvent('esx:onPlayerSpawn')
 			--TriggerEvent('esx:onPlayerSpawn')
 			--TriggerEvent('esx:restoreLoadout')
-
 			if isNew then
 				TriggerEvent('skinchanger:loadDefaultModel', skin.sex == 0)
 			elseif skin then
 				TriggerEvent('skinchanger:loadSkin', skin)
 			end
 
-			TriggerEvent('esx:loadingScreenOff')
-			ShutdownLoadingScreen()
-			ShutdownLoadingScreenNui()
-		end)
+			--TriggerEvent('esx:loadingScreenOff')
+			--ShutdownLoadingScreen()
+			--ShutdownLoadingScreenNui()
+		end)--]]
 	end
 
 	ESX.PlayerLoaded = true
