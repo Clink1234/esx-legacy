@@ -61,8 +61,6 @@ ESX.RegisterCommand('car', 'admin', function(xPlayer, args, showError)
 	ESX.OneSync.SpawnVehicle(args.car, playerCoords, playerHeading, upgrades, function(networkId)
 		if networkId then
 			local vehicle = NetworkGetEntityFromNetworkId(networkId)
-			local plate = GetVehicleNumberPlateText(vehicle)
-    			exports.wasabi_carlock:GiveKeys(plate, xPlayer.source)
 			for i = 1, 20 do
 				Wait(0)
 				SetPedIntoVehicle(playerPed, vehicle, -1)

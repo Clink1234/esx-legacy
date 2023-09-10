@@ -11,7 +11,7 @@ function StartPayCheck()
           if job == 'unemployed' then -- unemployed
             xPlayer.addAccountMoney('bank', salary, "Welfare Check")
             TriggerClientEvent('esx:showAdvancedNotification', player, TranslateCap('bank'), TranslateCap('received_paycheck'), TranslateCap('received_help', salary),
-              'CHAR_BANK_FLEECA', 9)
+              'CHAR_BANK_MAZE', 9)
           elseif Config.EnableSocietyPayouts then -- possibly a society
             TriggerEvent('esx_society:getSociety', xPlayer.job.name, function(society)
               if society ~= nil then -- verified society
@@ -19,26 +19,23 @@ function StartPayCheck()
                   if account.money >= salary then -- does the society money to pay its employees?
                     xPlayer.addAccountMoney('bank', salary, "Paycheck")
                     account.removeMoney(salary)
-		    TriggerEvent('ap-government:server:systemTax', player, "Player", salary)
 
                     TriggerClientEvent('esx:showAdvancedNotification', player, TranslateCap('bank'), TranslateCap('received_paycheck'),
-                      TranslateCap('received_salary', salary), 'CHAR_BANK_FLEECA', 9)
+                      TranslateCap('received_salary', salary), 'CHAR_BANK_MAZE', 9)
                   else
-                    TriggerClientEvent('esx:showAdvancedNotification', player, TranslateCap('bank'), '', TranslateCap('company_nomoney'), 'CHAR_BANK_FLEECA', 1)
+                    TriggerClientEvent('esx:showAdvancedNotification', player, TranslateCap('bank'), '', TranslateCap('company_nomoney'), 'CHAR_BANK_MAZE', 1)
                   end
                 end)
               else -- not a society
                 xPlayer.addAccountMoney('bank', salary, "Paycheck")
-		TriggerEvent('ap-government:server:systemTax', player, "Player", salary)
                 TriggerClientEvent('esx:showAdvancedNotification', player, TranslateCap('bank'), TranslateCap('received_paycheck'), TranslateCap('received_salary', salary),
-                  'CHAR_BANK_FLEECA', 9)
+                  'CHAR_BANK_MAZE', 9)
               end
             end)
           else -- generic job
             xPlayer.addAccountMoney('bank', salary, "Paycheck")
-	    TriggerEvent('ap-government:server:systemTax', player, "Player", salary)
             TriggerClientEvent('esx:showAdvancedNotification', player, TranslateCap('bank'), TranslateCap('received_paycheck'), TranslateCap('received_salary', salary),
-              'CHAR_BANK_FLEECA', 9)
+              'CHAR_BANK_MAZE', 9)
           end
         end
       end

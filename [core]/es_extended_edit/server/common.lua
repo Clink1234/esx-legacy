@@ -13,10 +13,9 @@ Core.playersByIdentifier = {}
 
 Core.vehicleTypesByModel = {}
 
-AddEventHandler('esx:getSharedObject', function(cb)
-  local Invoke = GetInvokingResource()
-  print(('[^3WARNING^7] ^5%s^7 used ^5esx:getSharedObject^7, this method is deprecated and should not be used! Refer to ^5https://docs.esx-framework.org/tutorials/sharedevent^7 for more info!'):format(Invoke))
-  cb(ESX)
+AddEventHandler("esx:getSharedObject", function()
+	local Invoke = GetInvokingResource()
+	print(("[^1ERROR^7] Resource ^5%s^7 Used the ^5getSharedObject^7 Event, this event ^1no longer exists!^7 Visit https://documentation.esx-framework.org/tutorials/tutorials-esx/sharedevent for how to fix!"):format(Invoke))
 end)
 
 exports('getSharedObject', function()
@@ -85,34 +84,3 @@ RegisterNetEvent("esx:ReturnVehicleType", function(Type, Request)
     Core.ClientCallbacks[Request] = nil
   end
 end)
-            -- Jobs Creator integration (jobs_creator)
-            RegisterNetEvent('esx:refreshJobs')
-            AddEventHandler('esx:refreshJobs', function()
-                MySQL.Async.fetchAll('SELECT * FROM jobs', {}, function(jobs)
-                    for k,v in ipairs(jobs) do
-                        ESX.Jobs[v.name] = v
-                        ESX.Jobs[v.name].grades = {}
-                    end
-
-                    MySQL.Async.fetchAll('SELECT * FROM job_grades', {}, function(jobGrades)
-                        for k,v in ipairs(jobGrades) do
-                            if ESX.Jobs[v.job_name] then
-                                ESX.Jobs[v.job_name].grades[tostring(v.grade)] = v
-                            else
-                                print(('[es_extended] [^3WARNING^7] Ignoring job grades for "%s" due to missing job'):format(v.job_name))
-                            end
-                        end
-
-                        for k2,v2 in pairs(ESX.Jobs) do
-                            if ESX.Table.SizeOf(v2.grades) == 0 then
-                                ESX.Jobs[v2.name] = nil
-                                print(('[es_extended] [^3WARNING^7] Ignoring job "%s" due to no job grades found'):format(v2.name))
-                            end
-                        end
-                    end)
-                end)
-            end)
-        
-
-            -- Jobs Creator integration (jobs_creator)
-            ESX.ServerCallbacks = Core.ServerCallbacks
